@@ -1,0 +1,286 @@
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.page-title{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.icon-box{
+    width:60px;
+    height:60px;
+    background:#eaf5ec;
+    border-radius:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    color:var(--verde-principal);
+}
+
+.page-title h1{
+    font-size:42px;
+    margin:0;
+    color:#1e293b;
+}
+
+.page-title p{
+    margin:0;
+    color:#64748b;
+    font-size:20px;
+}
+
+.breadcrumb{
+    color:#64748b;
+    font-size:16px;
+}
+
+/* TOP CRUD */
+
+.crud-top{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.form-card h3,
+.search-card h3{
+    margin-bottom:18px;
+    font-size:28px;
+    color:#1e293b;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.form-grid input,
+.form-grid select{
+    width:100%;
+    padding:14px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    font-size:16px;
+    outline:none;
+}
+
+.form-grid input:focus,
+.form-grid select:focus{
+    border-color:var(--verde-principal);
+}
+
+/* BOTONES */
+
+.crud-actions{
+    display:flex;
+    gap:10px;
+}
+
+.btn-green{
+    background:#3b7f4a;
+    color:white;
+    padding:14px 20px;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.btn-light{
+    background:#f1f5f9;
+    color:#1e293b;
+    padding:14px 20px;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.btn-green:hover{
+    background:#2f5d44;
+}
+
+.btn-light:hover{
+    background:#e2e8f0;
+}
+
+/* SEARCH */
+
+.search-box{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:12px;
+}
+
+.search-box i{
+    color:#64748b;
+}
+
+.search-box input{
+    border:none;
+    outline:none;
+    width:100%;
+    font-size:15px;
+}
+
+/* TABLA */
+
+.table-card{
+    background:white;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,.08);
+    overflow:hidden;
+}
+
+.table-header{
+    padding:20px;
+    border-bottom:1px solid #eee;
+}
+
+.table-header h3{
+    margin:0;
+    font-size:28px;
+}
+
+.tabla-usuarios{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.tabla-usuarios thead{
+    background:#1e293b;
+    color:white;
+}
+
+.tabla-usuarios th,
+.tabla-usuarios td{
+    padding:16px;
+    text-align:left;
+    font-size:16px;
+}
+
+.tabla-usuarios tbody tr{
+    border-bottom:1px solid #eee;
+}
+
+.tabla-usuarios tbody tr:hover{
+    background:#f8fafc;
+}
+
+/* USER INFO */
+
+.user-info{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.avatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:#3b82f6;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+}
+
+/* BADGES */
+
+.badge{
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.badge-admin{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.badge-dueno{
+    background:#dbeafe;
+    color:#2563eb;
+}
+
+.badge-empleado{
+    background:#f3e8ff;
+    color:#9333ea;
+}
+
+.badge-activo{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+/* ACTIONS */
+
+.actions{
+    display:flex;
+    gap:8px;
+}
+
+.btn-edit,
+.btn-delete{
+    width:40px;
+    height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.btn-edit{
+    background:#facc15;
+    color:black;
+}
+
+.btn-delete{
+    background:#ef4444;
+    color:white;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1000px){
+    .crud-top{
+        grid-template-columns:1fr;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:700px){
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .page-title h1{
+        font-size:28px;
+    }
+
+    .page-title p{
+        font-size:16px;
+    }
+}

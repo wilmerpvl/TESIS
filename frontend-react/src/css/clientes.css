@@ -1,0 +1,13 @@
+.btn-green{
+    background:#16a34a;
+}
+
+.btn-light{
+    background:#e2e8f0;
+    color:#1e293b;
+}
+
+.actions{
+    display:flex;
+    gap:8px;
+}

@@ -1,0 +1,45 @@
+.container{
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:220px;
+    min-height:100vh;
+    background: var(--verde-principal);
+    color:white;
+    padding:20px;
+    position:fixed;
+}
+
+.menu button{
+    width:100%;
+    background:none;
+    color:white;
+    padding:12px;
+    text-align:left;
+    margin-bottom:5px;
+}
+
+.menu button:hover{
+    background:#3b5d3f;
+}
+
+.content{
+    margin-left:220px;
+    flex:1;
+    padding:30px;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.stat-card{
+    background:white;
+    border-left:5px solid var(--dorado);
+    padding:20px;
+    border-radius:10px;
+}

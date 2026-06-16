@@ -1,0 +1,128 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import "../css/style.css";
+import "../css/login.css";
+
+function Login() {
+
+    const navigate = useNavigate();
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+
+    const login = async () => {
+
+        try {
+
+            const res = await fetch(
+                "http://localhost:3000/api/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password
+                    })
+                }
+            );
+
+            const data = await res.json();
+
+            if (res.ok) {
+
+                localStorage.setItem(
+                    "usuario",
+                    JSON.stringify(data.usuario)
+                );
+
+                navigate("/");
+
+            } else {
+
+                setError(data.mensaje);
+
+            }
+
+        } catch (err) {
+
+            setError(
+                "Error al conectar con el servidor"
+            );
+
+        }
+
+    };
+
+    return (
+
+        <div className="overlay">
+
+            <div className="login-box">
+
+                <div className="top-image"></div>
+
+                <div className="login-content">
+
+                    <h2>Iniciar Sesión</h2>
+
+                    <p>
+                        Sistema de Gestión de Muebles
+                    </p>
+
+                    <div className="input-group">
+
+                        <i className="fa fa-user"></i>
+
+                        <input
+                            type="email"
+                            placeholder="Correo"
+                            value={email}
+                            onChange={(e) =>
+                                setEmail(
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </div>
+
+                    <div className="input-group">
+
+                        <i className="fa fa-lock"></i>
+
+                        <input
+                            type="password"
+                            placeholder="Contraseña"
+                            value={password}
+                            onChange={(e) =>
+                                setPassword(
+                                    e.target.value
+                                )
+                            }
+                        />
+
+                    </div>
+
+                    <button onClick={login}>
+                        Ingresar
+                    </button>
+
+                    <p id="error">
+                        {error}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    );
+
+}
+
+export default Login;
