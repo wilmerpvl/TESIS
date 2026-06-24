@@ -16,7 +16,8 @@ CREATE TABLE clientes (
     identificacion VARCHAR(20),
     telefono VARCHAR(20),
     correo VARCHAR(100),
-    direccion VARCHAR(150)
+    direccion VARCHAR(150),
+    estado BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE proveedores (
@@ -24,9 +25,9 @@ CREATE TABLE proveedores (
     nombre VARCHAR(100),
     telefono VARCHAR(20),
     direccion VARCHAR(150),
-    correo VARCHAR(100)
+    correo VARCHAR(100),
+    estado BOOLEAN DEFAULT TRUE
 );
-
 
 CREATE TABLE tableros (
     id_tablero INT AUTO_INCREMENT PRIMARY KEY,
@@ -45,7 +46,6 @@ CREATE TABLE tableros (
     REFERENCES proveedores(id_proveedor)
 );
 
-
 CREATE TABLE accesorios (
     id_accesorio INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100),
@@ -60,19 +60,16 @@ CREATE TABLE accesorios (
     REFERENCES proveedores(id_proveedor)
 );
 
-
 CREATE TABLE tipos_mueble (
     id_tipo INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100),
     descripcion TEXT
 );
 
-
 CREATE TABLE secciones_mueble (
     id_seccion INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50)
 );
-
 
 CREATE TABLE modulos (
     id_modulo INT AUTO_INCREMENT PRIMARY KEY,
@@ -86,7 +83,6 @@ CREATE TABLE modulos (
     REFERENCES secciones_mueble(id_seccion)
 );
 
-
 CREATE TABLE piezas_modulo (
     id_pieza INT AUTO_INCREMENT PRIMARY KEY,
     id_modulo INT,
@@ -95,7 +91,6 @@ CREATE TABLE piezas_modulo (
     FOREIGN KEY (id_modulo)
     REFERENCES modulos(id_modulo)
 );
-
 
 CREATE TABLE cotizaciones (
     id_cotizacion INT AUTO_INCREMENT PRIMARY KEY,
@@ -129,7 +124,6 @@ CREATE TABLE detalle_modulos_cotizacion (
     REFERENCES modulos(id_modulo)
 );
 
-
 CREATE TABLE detalle_piezas_cotizacion (
     id_detalle_pieza INT AUTO_INCREMENT PRIMARY KEY,
     id_cotizacion INT,
@@ -151,7 +145,6 @@ CREATE TABLE detalle_piezas_cotizacion (
     REFERENCES tableros(id_tablero)
 );
 
-
 CREATE TABLE detalle_accesorios_cotizacion (
     id_detalle_accesorio INT AUTO_INCREMENT PRIMARY KEY,
     id_cotizacion INT,
@@ -163,7 +156,6 @@ CREATE TABLE detalle_accesorios_cotizacion (
     FOREIGN KEY (id_accesorio)
     REFERENCES accesorios(id_accesorio)
 );
-
 
 CREATE TABLE trabajos (
     id_trabajo INT AUTO_INCREMENT PRIMARY KEY,
@@ -184,7 +176,6 @@ CREATE TABLE trabajos (
     REFERENCES cotizaciones(id_cotizacion)
 );
 
-
 CREATE TABLE trabajo_empleado (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_trabajo INT,
@@ -195,19 +186,16 @@ CREATE TABLE trabajo_empleado (
     REFERENCES usuarios(id_usuario)
 );
 
-
 CREATE TABLE avances (
     id_avance INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NULL,
     porcentaje INT,
     descripcion TEXT,
-	id_trabajo INT,
+    id_trabajo INT,
     fecha DATE,
     FOREIGN KEY (id_trabajo)
     REFERENCES trabajos(id_trabajo)
 );
-
-
 
 CREATE TABLE evidencias (
     id_evidencia INT AUTO_INCREMENT PRIMARY KEY,
@@ -216,7 +204,6 @@ CREATE TABLE evidencias (
     FOREIGN KEY (id_avance)
     REFERENCES avances(id_avance)
 );
-
 
 CREATE TABLE auditoria (
     id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
@@ -228,21 +215,19 @@ CREATE TABLE auditoria (
     detalle TEXT
 );
 
+-- INSERTS DE DATOS INICIALES Y SEMILLA
 INSERT INTO usuarios(nombre,email,password,rol) VALUES
 ('Administrador','admin@sistema.com','123456','ADMIN'),
 ('Darwin','dueno@sistema.com','123456','DUENO'),
 ('Empleado','empleado@sistema.com','123456','EMPLEADO');
 
-
 INSERT INTO clientes(nombre,identificacion,telefono,correo,direccion) VALUES
 ('Juan Perez','0911111111','0999999999','juan@gmail.com','Guayaquil'),
 ('Maria Vera','0922222222','0988888888','maria@gmail.com','Durán');
 
-
 INSERT INTO proveedores(nombre,telefono,direccion,correo) VALUES
 ('EDIMCA','0999999999','Guayaquil','ventas@edimca.com'),
 ('NOVOCENTRO','0888888888','Guayaquil','ventas@novocentro.com');
-
 
 INSERT INTO tipos_mueble(nombre,descripcion) VALUES
 ('Closet','Closets personalizados'),
@@ -251,87 +236,65 @@ INSERT INTO tipos_mueble(nombre,descripcion) VALUES
 ('Mueble TV','Centros de entretenimiento'),
 ('Repisas','Repisas decorativas');
 
-
 INSERT INTO secciones_mueble(nombre) VALUES
 ('SUPERIOR'),
 ('CENTRAL'),
 ('INFERIOR');
 
-
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
-
--- SUPERIOR
+-- SUPERIOR CLOSET
 (1,1,'Maletero Superior','Espacio superior para maletas, sabanas o cajas'),
-
--- CENTRAL
+-- CENTRAL CLOSET
 (1,2,'Modulo Perchero','Modulo central para ropa colgada'),
 (1,2,'Modulo Cajonera','Modulo de cajones para ropa'),
 (1,2,'Modulo Mixto','Perchero con cajones'),
-
--- INFERIOR
+-- INFERIOR CLOSET
 (1,3,'Zapatera Abierta','Zapatera sin puertas'),
 (1,3,'Zapatera con Puerta','Zapatera con puertas');
 
-
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
-
--- SUPERIOR
+-- SUPERIOR COCINA
 (2,1,'Modulo Suspendido','Anaquel superior de cocina'),
 (2,1,'Modulo Esquinero Superior','Modulo esquinero superior'),
-
--- CENTRAL
+-- CENTRAL COCINA
 (2,2,'Modulo Microondas','Modulo para microondas'),
 (2,2,'Modulo Decorativo','Modulo con repisas decorativas'),
-
--- INFERIOR
+-- INFERIOR COCINA
 (2,3,'Modulo Inferior','Modulo inferior de cocina'),
 (2,3,'Modulo Tacho Basura','Modulo para tacho de basura'),
 (2,3,'Modulo Esquinero Inferior','Modulo esquinero inferior');
 
-
-
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
-
--- SUPERIOR
+-- SUPERIOR ESCRITORIO
 (3,1,'Repisas Laterales','Repisas laterales decorativas'),
-
--- CENTRAL
+-- CENTRAL ESCRITORIO
 (3,2,'Tablero Escritorio','Superficie principal del escritorio'),
-
--- INFERIOR
+-- INFERIOR ESCRITORIO
 (3,3,'Cajonera Abierta','Cajonera sin puerta'),
 (3,3,'Cajonera con Puerta','Cajonera con puerta');
 
-
-
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
-
--- SUPERIOR
+-- SUPERIOR MUEBLE TV
 (4,1,'Panel TV','Panel decorativo para television'),
 (4,1,'Repisas Superiores','Repisas decorativas superiores'),
-
--- CENTRAL
+-- CENTRAL MUEBLE TV
 (4,2,'Vinera','Modulo para bebidas'),
 (4,2,'Modulo Decorativo Abierto','Repisas decorativas abiertas'),
 (4,2,'Modulo Decorativo con Puerta','Modulo decorativo con puertas'),
 (4,2,'Repisas Laterales','Repisas laterales decorativas'),
-
--- INFERIOR
+-- INFERIOR MUEBLE TV
 (4,3,'Modulo Base TV','Modulo inferior principal'),
 (4,3,'Modulo Base con Puerta','Modulo inferior con puertas'),
 (4,3,'Modulo Base Abierto','Modulo inferior abierto');
 
-
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
-
+-- REPISAS
 (5,2,'Repisas Flotantes','Repisas decorativas flotantes'),
 (5,2,'Repisas Esquineras','Repisas para esquinas'),
 (5,2,'Repisas Verticales','Repisas verticales modernas'),
 (5,2,'Repisas Redondas','Repisas decorativas curvas');
 
-
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
-
 -- MALETERO SUPERIOR
 (1,'Lateral Derecho',TRUE),
 (1,'Lateral Izquierdo',TRUE),
@@ -339,7 +302,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (1,'Inferior',TRUE),
 (1,'Fondo',FALSE),
 (1,'Puertas',FALSE),
-
 -- MODULO PERCHERO
 (2,'Lateral Derecho',TRUE),
 (2,'Lateral Izquierdo',TRUE),
@@ -347,7 +309,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (2,'Inferior',TRUE),
 (2,'Fondo',FALSE),
 (2,'Puertas',FALSE),
-
 -- MODULO CAJONERA
 (3,'Lateral Derecho',TRUE),
 (3,'Lateral Izquierdo',TRUE),
@@ -356,7 +317,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (3,'Fondo',FALSE),
 (3,'Cajones',TRUE),
 (3,'Puertas',FALSE),
-
 -- MODULO MIXTO
 (4,'Lateral Derecho',TRUE),
 (4,'Lateral Izquierdo',TRUE),
@@ -365,7 +325,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (4,'Division',FALSE),
 (4,'Cajones',FALSE),
 (4,'Puertas',FALSE),
-
 -- ZAPATERA ABIERTA
 (5,'Lateral Derecho',TRUE),
 (5,'Lateral Izquierdo',TRUE),
@@ -373,7 +332,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (5,'Inferior',TRUE),
 (5,'Repisas',TRUE),
 (5,'Fondo',FALSE),
-
 -- ZAPATERA CON PUERTA
 (6,'Lateral Derecho',TRUE),
 (6,'Lateral Izquierdo',TRUE),
@@ -383,10 +341,7 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (6,'Fondo',FALSE),
 (6,'Puertas',TRUE);
 
-
-
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
-
 -- MODULO SUSPENDIDO
 (7,'Lateral Derecho',TRUE),
 (7,'Lateral Izquierdo',TRUE),
@@ -395,27 +350,23 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (7,'Fondo',FALSE),
 (7,'Puertas',FALSE),
 (7,'Repisas',FALSE),
-
 -- ESQUINERO SUPERIOR
 (8,'Laterales',TRUE),
 (8,'Superior',TRUE),
 (8,'Inferior',TRUE),
 (8,'Fondo',FALSE),
 (8,'Puertas',FALSE),
-
 -- MODULO MICROONDAS
 (9,'Laterales',TRUE),
 (9,'Superior',TRUE),
 (9,'Inferior',TRUE),
 (9,'Base',TRUE),
 (9,'Fondo',FALSE),
-
 -- MODULO DECORATIVO
 (10,'Laterales',TRUE),
 (10,'Superior',TRUE),
 (10,'Inferior',TRUE),
 (10,'Repisas',TRUE),
-
 -- MODULO INFERIOR
 (11,'Lateral Derecho',TRUE),
 (11,'Lateral Izquierdo',TRUE),
@@ -424,37 +375,29 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (11,'Fondo',FALSE),
 (11,'Puertas',FALSE),
 (11,'Repisas',FALSE),
-
 -- MODULO TACHO BASURA
 (12,'Laterales',TRUE),
 (12,'Superior',TRUE),
 (12,'Inferior',TRUE),
 (12,'Puerta',TRUE),
-
 -- ESQUINERO INFERIOR
 (13,'Laterales',TRUE),
 (13,'Superior',TRUE),
 (13,'Inferior',TRUE),
 (13,'Puertas',FALSE);
 
-
-
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
-
 -- REPISAS LATERALES
 (14,'Laterales',TRUE),
 (14,'Repisas',TRUE),
-
 -- TABLERO ESCRITORIO
 (15,'Tablero Superior',TRUE),
 (15,'Laterales',FALSE),
-
 -- CAJONERA ABIERTA
 (16,'Laterales',TRUE),
 (16,'Superior',TRUE),
 (16,'Inferior',TRUE),
 (16,'Cajones',TRUE),
-
 -- CAJONERA CON PUERTA
 (17,'Laterales',TRUE),
 (17,'Superior',TRUE),
@@ -462,116 +405,91 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (17,'Cajones',TRUE),
 (17,'Puerta',TRUE);
 
-
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
-
 -- PANEL TV
 (18,'Panel Principal',TRUE),
-
 -- REPISAS SUPERIORES
 (19,'Laterales',TRUE),
 (19,'Repisas',TRUE),
-
 -- VINERA
 (20,'Laterales',TRUE),
 (20,'Divisiones',TRUE),
 (20,'Base',TRUE),
 (20,'Fondo',FALSE),
-
 -- MODULO DECORATIVO ABIERTO
 (21,'Laterales',TRUE),
 (21,'Superior',TRUE),
 (21,'Inferior',TRUE),
 (21,'Repisas',TRUE),
-
 -- MODULO DECORATIVO CON PUERTA
 (22,'Laterales',TRUE),
 (22,'Superior',TRUE),
 (22,'Inferior',TRUE),
 (22,'Puertas',TRUE),
 (22,'Repisas',FALSE),
-
--- REPISAS LATERALES
+-- REPISAS LATERALES MUEBLE TV
 (23,'Laterales',TRUE),
 (23,'Repisas',TRUE),
-
 -- MODULO BASE TV
 (24,'Laterales',TRUE),
 (24,'Superior',TRUE),
 (24,'Inferior',TRUE),
 (24,'Fondo',FALSE),
-
 -- MODULO BASE CON PUERTA
 (25,'Laterales',TRUE),
 (25,'Superior',TRUE),
 (25,'Inferior',TRUE),
 (25,'Puertas',TRUE),
 (25,'Fondo',FALSE),
-
 -- MODULO BASE ABIERTO
 (26,'Laterales',TRUE),
 (26,'Superior',TRUE),
 (26,'Inferior',TRUE),
 (26,'Repisas',TRUE);
 
-
-
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
-
 -- REPISAS FLOTANTES
 (27,'Tabla Principal',TRUE),
 (27,'Soportes',TRUE),
-
 -- REPISAS ESQUINERAS
 (28,'Tabla Esquinera',TRUE),
 (28,'Soportes',TRUE),
-
 -- REPISAS VERTICALES
 (29,'Laterales',TRUE),
 (29,'Repisas',TRUE),
-
 -- REPISAS REDONDAS
 (30,'Base Circular',TRUE),
 (30,'Soporte',TRUE);
 
-
-
 INSERT INTO tableros 
 (nombre,tipo,color,textura,ancho,alto,espesor,precio_tablero,costo_corte,id_proveedor)
 VALUES
-
 ('Melamina Blanco Edimca','MELAMINA','Blanco','Liso',244,214,15,35,2,1),
 ('Melamina Roble Natural Edimca','MELAMINA','Roble Natural','Madera',244,214,15,39,2,1),
 ('Melamina Cedro Merak Edimca','MELAMINA','Cedro Merak','Madera',244,214,15,40,2,1),
 ('Melamina Gris Ideal Edimca','MELAMINA','Gris Ideal','Liso',244,214,15,38,2,1),
 ('Melamina Canela Nuez Edimca','MELAMINA','Canela Nuez','Madera',244,214,15,41,2,1),
-
 ('MDF Blanco Edimca','MDF','Blanco','Liso',244,214,15,45,2.5,1),
 ('MDF Roble Chic Edimca','MDF','Roble Chic','Madera',244,214,15,49,2.5,1),
 ('MDF Encino Marrón Edimca','MDF','Encino Marrón','Madera',244,214,15,50,2.5,1),
 ('MDF Seike Titanio Edimca','MDF','Seike Titanio','Madera',244,214,15,52,2.5,1),
 ('MDF Visón Verde Silvestre Edimca','MDF','Visón Verde','Madera',244,214,15,51,2.5,1),
-
 ('Melamina Blanco Novocentro','MELAMINA','Blanco','Liso',244,214,15,36,2,2),
 ('Melamina Roble Gris Novocentro','MELAMINA','Roble Gris','Madera',244,214,15,40,2,2),
 ('Melamina Capri Novocentro','MELAMINA','Capri','Madera',244,214,15,41,2,2),
 ('Melamina Bellota Novocentro','MELAMINA','Bellota','Madera',244,214,15,42,2,2),
 ('Melamina Toquilla Novocentro','MELAMINA','Toquilla','Madera',244,214,15,39,2,2),
-
 ('MDF Blanco Novocentro','MDF','Blanco','Liso',244,214,15,46,2.5,2),
 ('MDF Milano Novocentro','MDF','Milano','Madera',244,214,15,50,2.5,2),
 ('MDF Espresso Novocentro','MDF','Espresso','Madera',244,214,15,52,2.5,2),
 ('MDF Roble Negro Novocentro','MDF','Roble Negro','Madera',244,214,15,53,2.5,2),
 ('MDF Ágave Novocentro','MDF','Ágave','Madera',244,214,15,51,2.5,2),
-
 ('Triplex Natural Edimca','TRIPLEX','Natural','Natural',244,214,18,55,3,1),
 ('Triplex Crudo Novocentro','TRIPLEX','Crudo','Natural',244,214,18,57,3,2);
-
 
 INSERT INTO accesorios
 (nombre,categoria,material,tamano,color,precio_unitario,id_proveedor)
 VALUES
-
 ('Bisagra Recta','Bisagra','Acero','35mm','Plata',3.50,1),
 ('Bisagra Cierre Lento','Bisagra','Acero','35mm','Plata',5.50,1),
 ('Riel Telescopico','Riel','Acero','40cm','Plata',8.00,1),
