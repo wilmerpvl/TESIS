@@ -1,10 +1,6 @@
 CREATE DATABASE sistema_muebles;
 USE sistema_muebles;
 
--- =====================================================
--- USUARIOS
--- =====================================================
-
 CREATE TABLE usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100),
@@ -13,10 +9,6 @@ CREATE TABLE usuarios (
     rol ENUM('ADMIN','DUENO','EMPLEADO') NOT NULL,
     estado BOOLEAN DEFAULT TRUE
 );
-
--- =====================================================
--- CLIENTES
--- =====================================================
 
 CREATE TABLE clientes (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
@@ -27,10 +19,6 @@ CREATE TABLE clientes (
     direccion VARCHAR(150)
 );
 
--- =====================================================
--- PROVEEDORES
--- =====================================================
-
 CREATE TABLE proveedores (
     id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100),
@@ -39,9 +27,6 @@ CREATE TABLE proveedores (
     correo VARCHAR(100)
 );
 
--- =====================================================
--- TABLEROS
--- =====================================================
 
 CREATE TABLE tableros (
     id_tablero INT AUTO_INCREMENT PRIMARY KEY,
@@ -56,14 +41,10 @@ CREATE TABLE tableros (
     costo_corte DECIMAL(10,2),
     id_proveedor INT,
     estado BOOLEAN DEFAULT TRUE,
-
     FOREIGN KEY (id_proveedor)
     REFERENCES proveedores(id_proveedor)
 );
 
--- =====================================================
--- ACCESORIOS
--- =====================================================
 
 CREATE TABLE accesorios (
     id_accesorio INT AUTO_INCREMENT PRIMARY KEY,
@@ -75,14 +56,10 @@ CREATE TABLE accesorios (
     precio_unitario DECIMAL(10,2),
     id_proveedor INT,
     estado BOOLEAN DEFAULT TRUE,
-
     FOREIGN KEY (id_proveedor)
     REFERENCES proveedores(id_proveedor)
 );
 
--- =====================================================
--- TIPOS DE MUEBLES
--- =====================================================
 
 CREATE TABLE tipos_mueble (
     id_tipo INT AUTO_INCREMENT PRIMARY KEY,
@@ -90,19 +67,12 @@ CREATE TABLE tipos_mueble (
     descripcion TEXT
 );
 
--- =====================================================
--- SECCIONES DEL MUEBLE
--- SUPERIOR / CENTRAL / INFERIOR
--- =====================================================
 
 CREATE TABLE secciones_mueble (
     id_seccion INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50)
 );
 
--- =====================================================
--- MODULOS
--- =====================================================
 
 CREATE TABLE modulos (
     id_modulo INT AUTO_INCREMENT PRIMARY KEY,
@@ -110,253 +80,169 @@ CREATE TABLE modulos (
     id_seccion INT,
     nombre VARCHAR(100),
     descripcion TEXT,
-
     FOREIGN KEY (id_tipo)
     REFERENCES tipos_mueble(id_tipo),
-
     FOREIGN KEY (id_seccion)
     REFERENCES secciones_mueble(id_seccion)
 );
 
--- =====================================================
--- PIEZAS DEL MODULO
--- =====================================================
 
 CREATE TABLE piezas_modulo (
     id_pieza INT AUTO_INCREMENT PRIMARY KEY,
     id_modulo INT,
     nombre VARCHAR(100),
     obligatorio BOOLEAN DEFAULT TRUE,
-
     FOREIGN KEY (id_modulo)
     REFERENCES modulos(id_modulo)
 );
 
--- =====================================================
--- COTIZACIONES
--- =====================================================
 
 CREATE TABLE cotizaciones (
     id_cotizacion INT AUTO_INCREMENT PRIMARY KEY,
-
     id_cliente INT,
     id_tipo INT,
-
     fecha DATE,
-
     total_tableros DECIMAL(10,2),
     total_accesorios DECIMAL(10,2),
-
     mano_obra DECIMAL(10,2),
     transporte DECIMAL(10,2),
-
     total_final DECIMAL(10,2),
-
     estado ENUM(
         'PENDIENTE',
         'APROBADA',
         'RECHAZADA'
     ) DEFAULT 'PENDIENTE',
-
     FOREIGN KEY (id_cliente)
     REFERENCES clientes(id_cliente),
-
     FOREIGN KEY (id_tipo)
     REFERENCES tipos_mueble(id_tipo)
 );
 
--- =====================================================
--- DETALLE MODULOS COTIZACION
--- =====================================================
-
 CREATE TABLE detalle_modulos_cotizacion (
     id_detalle_modulo INT AUTO_INCREMENT PRIMARY KEY,
-
     id_cotizacion INT,
     id_modulo INT,
-
     cantidad INT,
-
     FOREIGN KEY (id_cotizacion)
     REFERENCES cotizaciones(id_cotizacion),
-
     FOREIGN KEY (id_modulo)
     REFERENCES modulos(id_modulo)
 );
 
--- =====================================================
--- DETALLE PIEZAS COTIZACION
--- =====================================================
 
 CREATE TABLE detalle_piezas_cotizacion (
     id_detalle_pieza INT AUTO_INCREMENT PRIMARY KEY,
-
     id_cotizacion INT,
     id_modulo INT,
     id_pieza INT,
     id_tablero INT,
-
     ancho DECIMAL(10,2),
     alto DECIMAL(10,2),
-
     cantidad INT,
     costo DECIMAL(10,2),
-
     observacion TEXT,
-
     FOREIGN KEY (id_cotizacion)
     REFERENCES cotizaciones(id_cotizacion),
-
     FOREIGN KEY (id_modulo)
     REFERENCES modulos(id_modulo),
-
     FOREIGN KEY (id_pieza)
     REFERENCES piezas_modulo(id_pieza),
-
     FOREIGN KEY (id_tablero)
     REFERENCES tableros(id_tablero)
 );
 
--- =====================================================
--- DETALLE ACCESORIOS COTIZACION
--- =====================================================
 
 CREATE TABLE detalle_accesorios_cotizacion (
     id_detalle_accesorio INT AUTO_INCREMENT PRIMARY KEY,
-
     id_cotizacion INT,
     id_accesorio INT,
-
     cantidad INT,
     subtotal DECIMAL(10,2),
-
     FOREIGN KEY (id_cotizacion)
     REFERENCES cotizaciones(id_cotizacion),
-
     FOREIGN KEY (id_accesorio)
     REFERENCES accesorios(id_accesorio)
 );
 
--- =====================================================
--- TRABAJOS
--- =====================================================
 
 CREATE TABLE trabajos (
     id_trabajo INT AUTO_INCREMENT PRIMARY KEY,
-
     id_cotizacion INT,
-
     fecha_inicio DATE,
     fecha_estimada DATE,
     fecha_fin DATE,
-
     prioridad ENUM(
         'BAJA',
         'MEDIA',
         'ALTA'
     ) DEFAULT 'MEDIA',
-
     estado ENUM(
         'EN_PROCESO',
         'COMPLETADO'
     ) DEFAULT 'EN_PROCESO',
-
     FOREIGN KEY (id_cotizacion)
     REFERENCES cotizaciones(id_cotizacion)
 );
 
--- =====================================================
--- TRABAJOS EMPLEADOS
--- =====================================================
 
 CREATE TABLE trabajo_empleado (
     id INT AUTO_INCREMENT PRIMARY KEY,
-
     id_trabajo INT,
     id_empleado INT,
-
     FOREIGN KEY (id_trabajo)
     REFERENCES trabajos(id_trabajo),
-
     FOREIGN KEY (id_empleado)
     REFERENCES usuarios(id_usuario)
 );
 
--- =====================================================
--- AVANCES
--- =====================================================
 
 CREATE TABLE avances (
     id_avance INT AUTO_INCREMENT PRIMARY KEY,
-
-    id_trabajo INT,
-
+    id_usuario INT NULL,
     porcentaje INT,
     descripcion TEXT,
+	id_trabajo INT,
     fecha DATE,
-
     FOREIGN KEY (id_trabajo)
     REFERENCES trabajos(id_trabajo)
 );
 
--- =====================================================
--- EVIDENCIAS
--- =====================================================
+
 
 CREATE TABLE evidencias (
     id_evidencia INT AUTO_INCREMENT PRIMARY KEY,
-
     id_avance INT,
     url_imagen VARCHAR(255),
-
     FOREIGN KEY (id_avance)
     REFERENCES avances(id_avance)
 );
 
--- =====================================================
--- AUDITORIA
--- =====================================================
 
 CREATE TABLE auditoria (
     id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
-
     id_usuario INT,
     accion VARCHAR(100),
-
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
     FOREIGN KEY (id_usuario)
-    REFERENCES usuarios(id_usuario)
+    REFERENCES usuarios(id_usuario),
+    detalle TEXT
 );
-
--- =====================================================
--- DATOS INICIALES
--- =====================================================
 
 INSERT INTO usuarios(nombre,email,password,rol) VALUES
 ('Administrador','admin@sistema.com','123456','ADMIN'),
 ('Darwin','dueno@sistema.com','123456','DUENO'),
 ('Empleado','empleado@sistema.com','123456','EMPLEADO');
 
--- =====================================================
--- CLIENTES
--- =====================================================
 
 INSERT INTO clientes(nombre,identificacion,telefono,correo,direccion) VALUES
 ('Juan Perez','0911111111','0999999999','juan@gmail.com','Guayaquil'),
 ('Maria Vera','0922222222','0988888888','maria@gmail.com','Durán');
 
--- =====================================================
--- PROVEEDORES
--- =====================================================
 
 INSERT INTO proveedores(nombre,telefono,direccion,correo) VALUES
 ('EDIMCA','0999999999','Guayaquil','ventas@edimca.com'),
 ('NOVOCENTRO','0888888888','Guayaquil','ventas@novocentro.com');
 
--- =====================================================
--- TIPOS DE MUEBLE
--- =====================================================
 
 INSERT INTO tipos_mueble(nombre,descripcion) VALUES
 ('Closet','Closets personalizados'),
@@ -366,19 +252,11 @@ INSERT INTO tipos_mueble(nombre,descripcion) VALUES
 ('Repisas','Repisas decorativas');
 
 
--- =====================================================
--- SECCIONES
--- =====================================================
-
 INSERT INTO secciones_mueble(nombre) VALUES
 ('SUPERIOR'),
 ('CENTRAL'),
 ('INFERIOR');
 
-
--- =====================================================
--- MODULOS CLOSET
--- =====================================================
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 
@@ -394,10 +272,6 @@ INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 (1,3,'Zapatera Abierta','Zapatera sin puertas'),
 (1,3,'Zapatera con Puerta','Zapatera con puertas');
 
-
--- =====================================================
--- MODULOS COCINA
--- =====================================================
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 
@@ -415,9 +289,6 @@ INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 (2,3,'Modulo Esquinero Inferior','Modulo esquinero inferior');
 
 
--- =====================================================
--- MODULOS ESCRITORIO
--- =====================================================
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 
@@ -432,9 +303,6 @@ INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 (3,3,'Cajonera con Puerta','Cajonera con puerta');
 
 
--- =====================================================
--- MODULOS MUEBLE TV
--- =====================================================
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 
@@ -454,10 +322,6 @@ INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 (4,3,'Modulo Base Abierto','Modulo inferior abierto');
 
 
--- =====================================================
--- MODULOS REPISAS
--- =====================================================
-
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 
 (5,2,'Repisas Flotantes','Repisas decorativas flotantes'),
@@ -465,10 +329,6 @@ INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
 (5,2,'Repisas Verticales','Repisas verticales modernas'),
 (5,2,'Repisas Redondas','Repisas decorativas curvas');
 
-
--- =====================================================
--- PIEZAS GENERALES MODULOS CLOSET
--- =====================================================
 
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 
@@ -524,9 +384,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (6,'Puertas',TRUE);
 
 
--- =====================================================
--- PIEZAS COCINA
--- =====================================================
 
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 
@@ -581,9 +438,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (13,'Puertas',FALSE);
 
 
--- =====================================================
--- PIEZAS ESCRITORIO
--- =====================================================
 
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 
@@ -608,10 +462,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (17,'Cajones',TRUE),
 (17,'Puerta',TRUE);
 
-
--- =====================================================
--- PIEZAS MUEBLE TV
--- =====================================================
 
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 
@@ -665,9 +515,6 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (26,'Repisas',TRUE);
 
 
--- =====================================================
--- PIEZAS REPISAS
--- =====================================================
 
 INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 
@@ -687,9 +534,7 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (30,'Base Circular',TRUE),
 (30,'Soporte',TRUE);
 
--- =====================================================
--- TABLEROS
--- =====================================================
+
 
 INSERT INTO tableros 
 (nombre,tipo,color,textura,ancho,alto,espesor,precio_tablero,costo_corte,id_proveedor)
@@ -721,9 +566,7 @@ VALUES
 
 ('Triplex Natural Edimca','TRIPLEX','Natural','Natural',244,214,18,55,3,1),
 ('Triplex Crudo Novocentro','TRIPLEX','Crudo','Natural',244,214,18,57,3,2);
--- =====================================================
--- ACCESORIOS
--- =====================================================
+
 
 INSERT INTO accesorios
 (nombre,categoria,material,tamano,color,precio_unitario,id_proveedor)
