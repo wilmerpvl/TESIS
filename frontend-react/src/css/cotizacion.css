@@ -50,25 +50,221 @@
     position: relative;
 }
 
-.lista-tableros{
-    position: absolute;
-    width: 100%;
-    max-height: 250px;
+.lista-tableros {
+
+    flex: 1;
+
     overflow-y: auto;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    margin-top: 5px;
-    z-index: 100;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fill,minmax(280px,1fr));
+
+    gap: 15px;
+
+    padding-top: 15px;
 }
 
-.item-tablero{
-    padding: 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-    transition: 0.2s;
+.item-tablero {
+
+    border: 1px solid #ddd;
+
+    border-radius: 10px;
+
+    padding: 15px;
+
+    background: white;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: space-between;
 }
 
 .item-tablero:hover{
     background: #f3f4f6;
 }
+
+.modal-tableros {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,.45);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+.modal-contenido {
+    background: white;
+
+    width: 1200px;
+    max-width: 90vw;
+
+    height: 80vh;
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 15px;
+}
+
+.modal-header h2 {
+    margin: 0;
+}
+
+.btn-cerrar-modal {
+    width: 40px;
+    height: 40px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #ef4444;
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 18px;
+}
+
+.lista-tableros {
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fill,minmax(250px,1fr));
+
+    gap: 15px;
+
+    margin-top: 20px;
+}
+
+.item-tablero {
+    border: 1px solid #ddd;
+
+    border-radius: 10px;
+
+    padding: 15px;
+
+    transition: .2s;
+}
+
+.item-tablero:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,.1);
+}
+
+.item-tablero h4 {
+    margin-bottom: 8px;
+}
+
+.item-tablero p {
+    margin: 3px 0;
+}
+
+.item-tablero button {
+    margin-top: 10px;
+    width: 100%;
+}
+
+.modal-contenido input {
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 8px;
+}
+
+.color-tablero{
+
+    height:60px;
+
+    border-radius:8px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-weight:600;
+
+    color:white;
+
+    text-shadow:
+        1px 1px 2px rgba(0,0,0,.5);
+}
+
+.resultado-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+    margin-top:20px;
+}
+
+.resultado-item{
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:10px;
+    padding:15px;
+}
+
+.resultado-item span{
+    display:block;
+    color:#64748b;
+    margin-bottom:5px;
+}
+
+.resultado-item b{
+    font-size:18px;
+}
+
+/* Estilos premium para selectores de Cotización */
+.card select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: white;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+.card select:focus {
+    border-color: #3b7f4a;
+    box-shadow: 0 0 0 3px rgba(59, 127, 74, 0.15);
+}
+
+.card select:hover {
+    border-color: #94a3b8;
+}

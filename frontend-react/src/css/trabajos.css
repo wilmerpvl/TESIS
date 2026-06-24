@@ -1,0 +1,38 @@
+.table-card{
+    overflow-x:auto;
+}
+
+.table-card table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.table-card th{
+    background:#f8fafc;
+    padding:14px;
+    text-align:left;
+    font-weight:700;
+    color:#374151;
+}
+
+.table-card td{
+    padding:14px;
+    border-top:1px solid #e5e7eb;
+}
+
+.table-card tr:hover{
+    background:#f9fafb;
+}
+
+.estado-pendiente{
+    background:#fef3c7;
+    color:#92400e;
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.table-card .btn-green{
+    padding:8px 14px;
+}

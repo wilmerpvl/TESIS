@@ -21,6 +21,7 @@ router.post('/login', (req, res) => {
         usuario: {
           id: user.id_usuario,
           nombre: user.nombre,
+          email: user.email,
           rol: user.rol
         }
       });

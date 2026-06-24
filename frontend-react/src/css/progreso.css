@@ -1,0 +1,108 @@
+.progreso-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.info-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.info-card span {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-card h3 {
+    margin-top: 8px;
+    font-size: 20px;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.custom-progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.custom-progress-fill {
+    height: 100%;
+    transition: width 0.4s ease-in-out;
+    border-radius: 10px;
+}
+
+.progreso-detalle-seccion {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 30px;
+    padding-top: 25px;
+}
+
+.progreso-formulario-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 15px;
+    margin-bottom: 30px;
+}
+
+.progreso-form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.estado-proceso {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.avance-historial-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.avance-historial-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.file-input-wrapper {
+    margin-top: 15px;
+    padding: 15px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+}
+
+.file-input-wrapper:hover {
+    border-color: #3b7f4a;
+}
+
+@media(max-width: 768px) {
+    .progreso-info {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}

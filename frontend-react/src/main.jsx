@@ -14,6 +14,7 @@ import "./css/accesorios.css";
 import "./css/cotizacion.css";
 import "./css/progreso.css";
 import "./css/trabajos.css";
+import "./css/perfil.css";
 
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
