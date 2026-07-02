@@ -31,67 +31,57 @@ export default function Reportes() {
 
     }, []);
 
+    const obtenerTokenHeaders = () => {
+        const usuarioStr = localStorage.getItem("usuario");
+        let token = "";
+        if (usuarioStr) {
+            try {
+                const usuario = JSON.parse(usuarioStr);
+                token = usuario?.token;
+            } catch (e) {}
+        }
+        const headers = {};
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+        return headers;
+    };
+
     const cargarDatos = async () => {
-
         try {
+            const headers = obtenerTokenHeaders();
+            // Ejecución en paralelo de todas las llamadas de reportes (Promise.all)
+            const [resumenRes, materialesRes, trabajosRes, cotizacionesRes, accesoriosRes] = await Promise.all([
+                fetch("http://localhost:3000/api/reportes/resumen", { headers }),
+                fetch("http://localhost:3000/api/reportes/materiales", { headers }),
+                fetch("http://localhost:3000/api/reportes/trabajos", { headers }),
+                fetch("http://localhost:3000/api/reportes/cotizaciones", { headers }),
+                fetch("http://localhost:3000/api/reportes/accesorios", { headers })
+            ]);
 
-            const resumenRes =
-                await fetch(
-                    "http://localhost:3000/api/reportes/resumen"
-                );
+            const [resumenData, materialesData, trabajosData, cotizacionesData, accesoriosData] = await Promise.all([
+                resumenRes.json(),
+                materialesRes.json(),
+                trabajosRes.json(),
+                cotizacionesRes.json(),
+                accesoriosRes.json()
+            ]);
 
-            const materialesRes =
-                await fetch(
-                    "http://localhost:3000/api/reportes/materiales"
-                );
-
-            const trabajosRes =
-                await fetch(
-                    "http://localhost:3000/api/reportes/trabajos"
-                );
-
-            const cotizacionesRes =
-                await fetch(
-                    "http://localhost:3000/api/reportes/cotizaciones"
-                );
-
-            const accesoriosRes =
-                await fetch(
-                    "http://localhost:3000/api/reportes/accesorios"
-                );
-
-            setResumen(
-                await resumenRes.json()
-            );
-
-            setMateriales(
-                await materialesRes.json()
-            );
-
-            setTrabajos(
-                await trabajosRes.json()
-            );
-
-            setCotizaciones(
-                await cotizacionesRes.json()
-            );
-
-            setAccesorios(
-                await accesoriosRes.json()
-            );
-
+            setResumen(resumenData);
+            setMateriales(materialesData);
+            setTrabajos(trabajosData);
+            setCotizaciones(cotizacionesData);
+            setAccesorios(accesoriosData);
         }
         catch (error) {
-
-            console.error(error);
-
+            console.error("Error al cargar los reportes:", error);
         }
-
     };
 
     const descargarCotizacionPDF = async (c) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/cotizacion-detalle/${c.id_cotizacion}`);
+            const headers = obtenerTokenHeaders();
+            const res = await fetch(`http://localhost:3000/api/cotizacion-detalle/${c.id_cotizacion}`, { headers });
             const data = await res.json();
             
             // Generar el diagrama de distribución de cortes en un canvas oculto

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-const API = "http://localhost:3000/api";
+import api from "../services/api";
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [buscar, setBuscar] = useState("");
@@ -21,7 +20,7 @@ export default function Usuarios() {
   }, []);
   const obtenerUsuarios = async () => {
     try {
-      const res = await axios.get(`${API}/usuarios`);
+      const res = await api.get("/usuarios");
       setUsuarios(res.data);
     } catch (error) {
       console.error(error);
@@ -76,7 +75,7 @@ export default function Usuarios() {
         ...form,
         id_usuario // Se envía para la auditoría
       };
-      await axios.post(`${API}/usuarios`, datosEnviar);
+      await api.post("/usuarios", datosEnviar);
       setAlerta({
         mensaje: "Usuario registrado correctamente.",
         tipo: "success"
@@ -109,8 +108,8 @@ export default function Usuarios() {
         ...form,
         id_usuario // Se envía para la auditoría
       };
-      await axios.put(
-        `${API}/usuarios/${editando}`,
+      await api.put(
+        `/usuarios/${editando}`,
         datosEnviar
       );
       setAlerta({
@@ -146,8 +145,8 @@ export default function Usuarios() {
       // Obtener el ID del usuario logueado desde localStorage
       const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
       const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
-      const res = await axios.delete(
-        `${API}/usuarios/${id}`,
+      const res = await api.delete(
+        `/usuarios/${id}`,
         {
           params: { id_usuario } // Se envía id_usuario por query params (?id_usuario=X)
         }

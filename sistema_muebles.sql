@@ -191,7 +191,7 @@ CREATE TABLE avances (
     id_usuario INT NULL,
     porcentaje INT,
     descripcion TEXT,
-    id_trabajo INT,
+	id_trabajo INT,
     fecha DATE,
     FOREIGN KEY (id_trabajo)
     REFERENCES trabajos(id_trabajo)
@@ -215,11 +215,10 @@ CREATE TABLE auditoria (
     detalle TEXT
 );
 
--- INSERTS DE DATOS INICIALES Y SEMILLA
 INSERT INTO usuarios(nombre,email,password,rol) VALUES
-('Administrador','admin@sistema.com','123456','ADMIN'),
-('Darwin','dueno@sistema.com','123456','DUENO'),
-('Empleado','empleado@sistema.com','123456','EMPLEADO');
+('Administrador','admin@sistema.com','$2b$10$rO26fM8eoMUuxKqWh9VF0u0QLYzA.JhgxIpXke.mWtXjQKfis7MBG','ADMIN'),
+('Darwin','dueno@sistema.com','$2b$10$rO26fM8eoMUuxKqWh9VF0u0QLYzA.JhgxIpXke.mWtXjQKfis7MBG','DUENO'),
+('Empleado','empleado@sistema.com','$2b$10$rO26fM8eoMUuxKqWh9VF0u0QLYzA.JhgxIpXke.mWtXjQKfis7MBG','EMPLEADO');
 
 INSERT INTO clientes(nombre,identificacion,telefono,correo,direccion) VALUES
 ('Juan Perez','0911111111','0999999999','juan@gmail.com','Guayaquil'),
@@ -242,53 +241,52 @@ INSERT INTO secciones_mueble(nombre) VALUES
 ('INFERIOR');
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
--- SUPERIOR CLOSET
+-- SUPERIOR
 (1,1,'Maletero Superior','Espacio superior para maletas, sabanas o cajas'),
--- CENTRAL CLOSET
+-- CENTRAL
 (1,2,'Modulo Perchero','Modulo central para ropa colgada'),
 (1,2,'Modulo Cajonera','Modulo de cajones para ropa'),
 (1,2,'Modulo Mixto','Perchero con cajones'),
--- INFERIOR CLOSET
+-- INFERIOR
 (1,3,'Zapatera Abierta','Zapatera sin puertas'),
 (1,3,'Zapatera con Puerta','Zapatera con puertas');
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
--- SUPERIOR COCINA
+-- SUPERIOR
 (2,1,'Modulo Suspendido','Anaquel superior de cocina'),
 (2,1,'Modulo Esquinero Superior','Modulo esquinero superior'),
--- CENTRAL COCINA
+-- CENTRAL
 (2,2,'Modulo Microondas','Modulo para microondas'),
 (2,2,'Modulo Decorativo','Modulo con repisas decorativas'),
--- INFERIOR COCINA
+-- INFERIOR
 (2,3,'Modulo Inferior','Modulo inferior de cocina'),
 (2,3,'Modulo Tacho Basura','Modulo para tacho de basura'),
 (2,3,'Modulo Esquinero Inferior','Modulo esquinero inferior');
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
--- SUPERIOR ESCRITORIO
+-- SUPERIOR
 (3,1,'Repisas Laterales','Repisas laterales decorativas'),
--- CENTRAL ESCRITORIO
+-- CENTRAL
 (3,2,'Tablero Escritorio','Superficie principal del escritorio'),
--- INFERIOR ESCRITORIO
+-- INFERIOR
 (3,3,'Cajonera Abierta','Cajonera sin puerta'),
 (3,3,'Cajonera con Puerta','Cajonera con puerta');
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
--- SUPERIOR MUEBLE TV
+-- SUPERIOR
 (4,1,'Panel TV','Panel decorativo para television'),
 (4,1,'Repisas Superiores','Repisas decorativas superiores'),
--- CENTRAL MUEBLE TV
+-- CENTRAL
 (4,2,'Vinera','Modulo para bebidas'),
 (4,2,'Modulo Decorativo Abierto','Repisas decorativas abiertas'),
 (4,2,'Modulo Decorativo con Puerta','Modulo decorativo con puertas'),
 (4,2,'Repisas Laterales','Repisas laterales decorativas'),
--- INFERIOR MUEBLE TV
+-- INFERIOR
 (4,3,'Modulo Base TV','Modulo inferior principal'),
 (4,3,'Modulo Base con Puerta','Modulo inferior con puertas'),
 (4,3,'Modulo Base Abierto','Modulo inferior abierto');
 
 INSERT INTO modulos(id_tipo,id_seccion,nombre,descripcion) VALUES
--- REPISAS
 (5,2,'Repisas Flotantes','Repisas decorativas flotantes'),
 (5,2,'Repisas Esquineras','Repisas para esquinas'),
 (5,2,'Repisas Verticales','Repisas verticales modernas'),
@@ -427,7 +425,7 @@ INSERT INTO piezas_modulo(id_modulo,nombre,obligatorio) VALUES
 (22,'Inferior',TRUE),
 (22,'Puertas',TRUE),
 (22,'Repisas',FALSE),
--- REPISAS LATERALES MUEBLE TV
+-- REPISAS LATERALES
 (23,'Laterales',TRUE),
 (23,'Repisas',TRUE),
 -- MODULO BASE TV
@@ -497,4 +495,4 @@ VALUES
 ('Agarradera Dorada','Agarradera','Aluminio','15cm','Dorado',6.50,2),
 ('Tornillo Zincado','Tornillo','Acero','2 pulgadas','Gris',2.50,1),
 ('Bordo PVC Blanco','Bordo PVC','PVC','18mm','Blanco',0.35,1),
-('Bordo PVC Negro','Bordo PVC','PVC','22mm','Negro',0.45,1);
+('Bordo PVC Negro','Bordo PVC','PVC','22mm','Negro');

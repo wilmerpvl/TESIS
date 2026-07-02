@@ -5,6 +5,8 @@ import {
     Navigate
 } from "react-router-dom";
 
+import { useAuth } from "../context/AuthContext";
+
 import Login from "../pages/Login";
 import Inicio from "../pages/Inicio";
 
@@ -23,16 +25,15 @@ import Auditoria from "../pages/Auditoria";
 import DashboardLayout from "../layout/DashboardLayout";
 
 function RutaProtegida({ children }) {
-    const usuario = localStorage.getItem("usuario");
-    return usuario ? children : <Navigate to="/login" replace />;
+    const { user } = useAuth();
+    return user ? children : <Navigate to="/login" replace />;
 }
 
 function RutaPermitida({ allowedRoles, children }) {
-    const usuarioStr = localStorage.getItem("usuario");
-    if (!usuarioStr) return <Navigate to="/login" replace />;
+    const { user } = useAuth();
+    if (!user) return <Navigate to="/login" replace />;
 
-    const usuario = JSON.parse(usuarioStr);
-    const rol = usuario.rol ? usuario.rol.toUpperCase() : "";
+    const rol = user.rol ? user.rol.toUpperCase() : "";
 
     if (!allowedRoles.includes(rol)) {
         if (rol === "EMPLEADO") {

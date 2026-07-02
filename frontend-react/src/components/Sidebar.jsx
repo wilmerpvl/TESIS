@@ -1,16 +1,16 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Sidebar() {
     const navigate = useNavigate();
+    const { user, logout: logoutUser } = useAuth();
 
     const logout = () => {
-        localStorage.removeItem("usuario");
+        logoutUser();
         navigate("/login");
     };
 
-    const usuarioStr = localStorage.getItem("usuario");
-    const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
-    const rol = usuario && usuario.rol ? usuario.rol.toUpperCase() : "";
+    const rol = user && user.rol ? user.rol.toUpperCase() : "";
 
     const mostrarLink = (routeRol) => {
         if (!rol) return false;

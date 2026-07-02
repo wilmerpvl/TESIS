@@ -211,7 +211,7 @@ export default function Progreso() {
           }}
           style={{
             padding: "10px 20px",
-            backgroundColor: tabActiva === "proceso" ? "#4f46e5" : "white",
+            backgroundColor: tabActiva === "proceso" ? "#24833c" : "white",
             color: tabActiva === "proceso" ? "white" : "#4a5568",
             border: "1px solid #e2e8f0",
             borderRadius: "8px",
@@ -232,7 +232,7 @@ export default function Progreso() {
           }}
           style={{
             padding: "10px 20px",
-            backgroundColor: tabActiva === "completados" ? "#4f46e5" : "white",
+            backgroundColor: tabActiva === "completados" ? "#24833c" : "white",
             color: tabActiva === "completados" ? "white" : "#4a5568",
             border: "1px solid #e2e8f0",
             borderRadius: "8px",

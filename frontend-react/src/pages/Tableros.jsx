@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import {
   obtenerTableros,
   crearTablero,
@@ -42,7 +42,7 @@ function Tableros() {
   };
   const cargarProveedores = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/proveedores");
+      const res = await api.get("/proveedores");
       setProveedores(res.data);
     } catch (error) {
       console.error("Error al cargar proveedores:", error);

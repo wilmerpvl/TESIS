@@ -149,7 +149,7 @@ function Inicio() {
                     <div className="card">
                         <h3>📈 Avance</h3>
                         <h1>
-                            {dashboard.avance}%
+                            {Number(dashboard.avance || 0).toFixed(2).replace('.', ',')}%
                         </h1>
                         <p>
                             Promedio general

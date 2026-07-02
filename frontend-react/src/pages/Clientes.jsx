@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import api from "../services/api";
 import "../css/clientes.css";
 export default function Clientes() {
     const [clientes, setClientes] = useState([]);
@@ -23,9 +24,12 @@ export default function Clientes() {
         cargarClientes();
     }, []);
     async function cargarClientes() {
-        const res = await fetch("http://localhost:3000/api/clientes");
-        const data = await res.json();
-        setClientes(data);
+        try {
+            const res = await api.get("/clientes");
+            setClientes(res.data);
+        } catch (error) {
+            console.error("Error al cargar clientes:", error);
+        }
     }
     function handleChange(e) {
         setForm({
@@ -94,25 +98,11 @@ export default function Clientes() {
             ...form,
             id_usuario
         };
-        const url = editando
-            ? `http://localhost:3000/api/clientes/${editando}`
-            : "http://localhost:3000/api/clientes";
-        const method = editando ? "PUT" : "POST";
         try {
-            const res = await fetch(url, {
-                method,
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(datosEnviar)
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                setAlerta({
-                    mensaje: data.mensaje || "Error al procesar la solicitud.",
-                    tipo: "error"
-                });
-                return;
+            if (editando) {
+                await api.put(`/clientes/${editando}`, datosEnviar);
+            } else {
+                await api.post("/clientes", datosEnviar);
             }
             setAlerta({
                 mensaje: editando ? "Cliente actualizado correctamente." : "Cliente registrado correctamente.",
@@ -132,7 +122,7 @@ export default function Clientes() {
         } catch (error) {
             console.error(error);
             setAlerta({
-                mensaje: "Error de conexión al guardar el cliente.",
+                mensaje: error.response?.data?.mensaje || "Error de conexión al guardar el cliente.",
                 tipo: "error"
             });
         }
@@ -151,31 +141,19 @@ export default function Clientes() {
         const usuario = JSON.parse(localStorage.getItem("usuario"));
         const id_usuario = usuario ? (usuario.id || usuario.id_usuario) : null;
         try {
-            const res = await fetch(
-                `http://localhost:3000/api/clientes/${id}?id_usuario=${id_usuario}`,
-                {
-                    method: "DELETE"
-                }
-            );
-            const data = await res.json();
-            if (!res.ok) {
-                // Alerta personalizada para error al eliminar
-                setAlerta({
-                    mensaje: data.mensaje || "Error al intentar eliminar el cliente.",
-                    tipo: "warning"
-                });
-                return;
-            }
+            const res = await api.delete(`/clientes/${id}`, {
+                params: { id_usuario }
+            });
             setAlerta({
-                mensaje: data.mensaje || "Cliente eliminado con éxito.",
+                mensaje: res.data?.mensaje || "Cliente eliminado con éxito.",
                 tipo: "success"
             });
             cargarClientes();
         } catch (error) {
             console.error(error);
             setAlerta({
-                mensaje: "Error de conexión al intentar eliminar el cliente.",
-                tipo: "error"
+                mensaje: error.response?.data?.mensaje || "Error al intentar eliminar el cliente.",
+                tipo: "warning"
             });
         }
     };

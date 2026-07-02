@@ -178,18 +178,8 @@ export default function Cotizacion() {
                 accesorios: accesoriosGuardar,
                 id_usuario // Se envía para registrar en auditoría
             };
-            const response = await fetch(
-                "http://localhost:3000/api/guardar-cotizacion",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                }
-            );
-            const data = await response.json();
-            alert(data.message);
+            const data = await guardarCotizacion(payload);
+            alert(data.mensaje || data.message || "Cotización guardada correctamente.");
             setMostrarResultado(false);
         } catch (error) {
             console.error(error);

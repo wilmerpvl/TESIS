@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 export default function Proveedores() {
   const [proveedores, setProveedores] = useState([]);
   const [buscar, setBuscar] = useState("");
@@ -19,7 +19,7 @@ export default function Proveedores() {
   const [alerta, setAlerta] = useState(null); // { mensaje: "...", tipo: "success" | "error" | "warning" }
   const cargarProveedores = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/proveedores");
+      const res = await api.get("/proveedores");
       setProveedores(res.data);
     } catch (error) {
       console.error(error);
@@ -74,8 +74,8 @@ export default function Proveedores() {
       };
       if (editando) {
         // Petición para actualizar
-        const res = await axios.put(
-          `http://localhost:3000/api/proveedores/${editando}`,
+        const res = await api.put(
+          `/proveedores/${editando}`,
           datosEnviar
         );
         setAlerta({
@@ -84,8 +84,8 @@ export default function Proveedores() {
         });
       } else {
         // Petición para crear
-        const res = await axios.post(
-          "http://localhost:3000/api/proveedores",
+        const res = await api.post(
+          "/proveedores",
           datosEnviar
         );
         setAlerta({
@@ -124,8 +124,8 @@ export default function Proveedores() {
       // Obtener el ID del usuario logueado desde localStorage
       const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
       const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
-      const res = await axios.delete(
-        `http://localhost:3000/api/proveedores/${id}`,
+      const res = await api.delete(
+        `/proveedores/${id}`,
         {
           params: { id_usuario } // Se envía id_usuario por query parameter (?id_usuario=X)
         }

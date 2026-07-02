@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import api from "../services/api";
 // Para exportar a PDF, asegúrate de instalar las librerías:
 // npm install jspdf jspdf-autotable
 import { jsPDF } from "jspdf";
@@ -16,11 +17,11 @@ function Auditoria() {
   }, []);
   const cargarAuditoria = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/auditoria");
-      const data = await res.json();
-      setAuditoria(data);
+      const res = await api.get("/auditoria");
+      setAuditoria(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);
+      setAuditoria([]);
     }
   };
   // Obtener lista única de usuarios para el filtro select
