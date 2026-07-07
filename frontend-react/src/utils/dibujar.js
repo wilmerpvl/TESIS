@@ -337,14 +337,34 @@ export const dibujar = (
         }
 
         if (!colocada) {
-
-            const nuevo =
-                crearTablon();
-
-            tablones.push(
-                nuevo
-            );
-
+            const nuevo = crearTablon();
+            const espacio = nuevo.espacios[0];
+            let w = pieza.ancho;
+            let h = pieza.alto;
+            
+            const entraNormal = w <= espacio.w && h <= espacio.h;
+            const entraRotada = h <= espacio.w && w <= espacio.h;
+            if (!entraNormal && entraRotada) {
+                w = pieza.alto;
+                h = pieza.ancho;
+            }
+            
+            nuevo.piezas.push({
+                x: espacio.x,
+                y: espacio.y,
+                w,
+                h,
+                nombre: pieza.nombre,
+                texto: `${w} x ${h} cm`,
+                moduloNombre: pieza.moduloNombre
+            });
+            
+            nuevo.espacios.splice(0, 1);
+            dividirEspacio(nuevo, espacio, espacio.x, espacio.y, w, h);
+            limpiarEspacios(nuevo);
+            
+            tablones.push(nuevo);
+            colocada = true;
         }
 
     });

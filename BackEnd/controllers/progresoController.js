@@ -175,10 +175,22 @@ exports.registrarAvance = (req, res) => {
                     );
                 }
 
+                // SI SE LLEGA AL 100%, FINALIZAR TRABAJO AUTOMÁTICAMENTE
+                if (sumaActual + porcentajeInt === 100) {
+                    const fechaFin = fecha && fecha.trim() !== "" ? fecha : new Date();
+                    conexion.query(
+                        `UPDATE trabajos SET estado = 'COMPLETADO', fecha_fin = ? WHERE id_trabajo = ?`,
+                        [fechaFin, id_trabajo],
+                        (errJob) => {
+                            if (errJob) console.error("Error al finalizar trabajo automáticamente:", errJob);
+                        }
+                    );
+                }
+
                 if (id_usuario) {
                     registrarAuditoria(
                         id_usuario,
-                        `Registró avance de trabajo #${id_trabajo} (${porcentajeInt}%)`
+                        `Registró avance de trabajo #${id_trabajo} (${porcentajeInt}%)` + (sumaActual + porcentajeInt === 100 ? " - TRABAJO COMPLETADO" : "")
                     );
                 }
                 res.json({ message: "Avance registrado correctamente" });

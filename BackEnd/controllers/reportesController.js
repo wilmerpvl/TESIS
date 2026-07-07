@@ -27,7 +27,7 @@ exports.obtenerResumen = (req, res) => {
                                     datos.empleados = emp[0].total;
 
                                     conexion.query(
-                                        "SELECT SUM(total_final) total FROM cotizaciones",
+                                        "SELECT SUM(c.total_final) total FROM cotizaciones c INNER JOIN trabajos t ON c.id_cotizacion = t.id_cotizacion",
                                         (err, fac) => {
                                             if (err) return res.status(500).json(err);
                                             datos.facturacion = fac[0].total || 0;

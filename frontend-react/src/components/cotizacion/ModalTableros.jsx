@@ -1,4 +1,5 @@
 import { useState } from "react";
+import api from "../../services/api";
 
 function obtenerColor(color) {
 
@@ -116,10 +117,32 @@ function ModalTableros({
                                 <div
                                     className="color-tablero"
                                     style={{
-                                        background:
-                                            obtenerColor(tablero.color)
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        overflow: "hidden",
+                                        border: "1px solid #cbd5e1"
                                     }}
                                 >
+                                    {tablero.imagen ? (
+                                        <img
+                                            src={`${api.defaults.baseURL.replace("/api", "")}/uploads/${tablero.imagen}`}
+                                            alt={tablero.nombre}
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                objectFit: "cover"
+                                            }}
+                                        />
+                                    ) : (
+                                        <div
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                background: obtenerColor(tablero.color)
+                                            }}
+                                        />
+                                    )}
                                 </div>
 
                                 <h4>

@@ -26,6 +26,11 @@ export default function Usuarios() {
       console.error(error);
     }
   };
+  const handleKeyPressOnlyLetters = (e) => {
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -134,6 +139,33 @@ export default function Usuarios() {
       });
     }
   };
+  const activarUsuarioDirecto = async (u) => {
+    const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
+    const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
+    
+    const datosEnviar = {
+      nombre: u.nombre,
+      email: u.email,
+      rol: u.rol,
+      password: "",
+      id_usuario,
+      estado: 1
+    };
+    try {
+      await api.put(`/usuarios/${u.id_usuario}`, datosEnviar);
+      setAlerta({
+        mensaje: "Usuario activado correctamente.",
+        tipo: "success"
+      });
+      obtenerUsuarios();
+    } catch (error) {
+      console.error(error);
+      setAlerta({
+        mensaje: error.response?.data?.mensaje || "Error al activar el usuario.",
+        tipo: "error"
+      });
+    }
+  };
   const iniciarEliminacion = (usuario) => {
     setUsuarioParaEliminar(usuario);
   };
@@ -208,6 +240,7 @@ export default function Usuarios() {
                 placeholder="👤 Nombre completo"
                 value={form.nombre}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressOnlyLetters}
                 style={errores.nombre ? { borderColor: "#ef4444" } : {}}
               />
               {errores.nombre && (
@@ -380,9 +413,31 @@ export default function Usuarios() {
                     <button className="btn-edit" onClick={() => editarUsuario(u)}>
                       ✏️
                     </button>
-                    <button className="btn-delete" onClick={() => iniciarEliminacion(u)}>
-                      🗑️
-                    </button>
+                    {u.estado ? (
+                      <button
+                        className="btn-delete"
+                        onClick={() => iniciarEliminacion(u)}
+                        title="Inactivar"
+                      >
+                        🗑️
+                      </button>
+                    ) : (
+                      <button
+                        className="btn-green"
+                        onClick={() => activarUsuarioDirecto(u)}
+                        title="Activar"
+                        style={{
+                          padding: "6px 10px",
+                          fontSize: "13px",
+                          fontWeight: "bold",
+                          borderRadius: "6px",
+                          display: "inline-flex",
+                          alignItems: "center"
+                        }}
+                      >
+                        ✔️
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

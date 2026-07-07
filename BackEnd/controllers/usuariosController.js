@@ -121,54 +121,24 @@ exports.actualizarUsuario = async (req, res) => {
 };
 
 exports.eliminarUsuario = async (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
     const id_usuario = req.query.id_usuario;
 
-    if (parseInt(id) === parseInt(id_usuario)) {
-        return res.status(400).json({ mensaje: 'No puedes eliminar o desactivar tu propio usuario desde este módulo.' });
-    }
-
     try {
-        const sqlCheck = `
-            SELECT 
-                (SELECT COUNT(*) FROM auditoria WHERE id_usuario = ?) AS totalAuditoria,
-                (SELECT COUNT(*) FROM trabajo_empleado WHERE id_empleado = ?) AS totalTrabajos
-        `;
-        db.query(sqlCheck, [id, id], async (errCheck, resultsCheck) => {
-            if (errCheck) {
-                console.error(errCheck);
-                return res.status(500).json({ mensaje: 'Error al verificar relaciones del usuario' });
-            }
-            const totalAuditoria = resultsCheck[0].totalAuditoria;
-            const totalTrabajos = resultsCheck[0].totalTrabajos;
+        const usuario = await Usuario.findByPk(id);
+        if (!usuario) {
+            return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+        }
 
-            const usuario = await Usuario.findByPk(id);
-            if (!usuario) {
-                return res.status(404).json({ mensaje: 'Usuario no encontrado' });
-            }
+        const nombreUsr = `${usuario.nombre} (${usuario.rol})`;
+        await usuario.update({ estado: false });
 
-            const nombreUsr = `${usuario.nombre} (${usuario.rol})`;
-
-            if (totalAuditoria > 0 || totalTrabajos > 0) {
-                let detalles = [];
-                if (totalAuditoria > 0) detalles.push(`${totalAuditoria} registro(s) de auditoría`);
-                if (totalTrabajos > 0) detalles.push(`${totalTrabajos} trabajo(s) asignado(s)`);
-
-                await usuario.update({ estado: false });
-                if (id_usuario) {
-                    registrarAuditoria(id_usuario, `Desactivó al usuario: ${nombreUsr} (eliminación lógica por dependencias)`);
-                }
-                return res.json({ mensaje: `El usuario está asociado a ${detalles.join(' y ')}, por lo que fue desactivado (eliminación lógica) para conservar el historial.` });
-            }
-
-            await usuario.destroy();
-            if (id_usuario) {
-                registrarAuditoria(id_usuario, `Eliminó al usuario: ${nombreUsr}`);
-            }
-            res.json({ mensaje: 'Usuario eliminado correctamente' });
-        });
+        if (id_usuario) {
+            registrarAuditoria(id_usuario, `Desactivó al usuario: ${nombreUsr} (eliminación lógica)`);
+        }
+        res.json({ mensaje: 'Usuario desactivado (eliminación lógica) correctamente.' });
     } catch (error) {
         console.error(error);
-        res.status(500).json(error);
+        res.status(500).json({ mensaje: 'Error al desactivar el usuario.' });
     }
 };

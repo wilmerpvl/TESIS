@@ -66,6 +66,13 @@ function ModalResultadoCotizacion({
         );
     };
 
+    const handleGuardarYDescargar = () => {
+        // Descargar PDF
+        handleDescargarPDF();
+        // Guardar cotización en la BD
+        onGuardar();
+    };
+
     return (
         <div className="modal-tableros">
             <div
@@ -205,15 +212,8 @@ function ModalResultadoCotizacion({
                         Cerrar
                     </button>
                     <button
-                        className="btn-light"
-                        onClick={handleDescargarPDF}
-                        style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: "bold" }}
-                    >
-                        🖨️ Descargar PDF
-                    </button>
-                    <button
                         className="btn-green"
-                        onClick={onGuardar}
+                        onClick={handleGuardarYDescargar}
                     >
                         Guardar Cotización
                     </button>

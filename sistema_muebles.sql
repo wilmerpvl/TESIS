@@ -1,3 +1,4 @@
+
 CREATE DATABASE sistema_muebles;
 USE sistema_muebles;
 
@@ -191,10 +192,10 @@ CREATE TABLE avances (
     id_usuario INT NULL,
     porcentaje INT,
     descripcion TEXT,
-	id_trabajo INT,
+    id_trabajo INT,
     fecha DATE,
-    FOREIGN KEY (id_trabajo)
-    REFERENCES trabajos(id_trabajo)
+    FOREIGN KEY (id_trabajo) REFERENCES trabajos(id_trabajo),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
 
 CREATE TABLE evidencias (
@@ -215,6 +216,9 @@ CREATE TABLE auditoria (
     detalle TEXT
 );
 
+-- ==========================================
+-- INSERCIÓN DE DATOS DE PRUEBA E INICIALES
+-- ==========================================
 INSERT INTO usuarios(nombre,email,password,rol) VALUES
 ('Administrador','admin@sistema.com','$2b$10$rO26fM8eoMUuxKqWh9VF0u0QLYzA.JhgxIpXke.mWtXjQKfis7MBG','ADMIN'),
 ('Darwin','dueno@sistema.com','$2b$10$rO26fM8eoMUuxKqWh9VF0u0QLYzA.JhgxIpXke.mWtXjQKfis7MBG','DUENO'),
@@ -495,4 +499,11 @@ VALUES
 ('Agarradera Dorada','Agarradera','Aluminio','15cm','Dorado',6.50,2),
 ('Tornillo Zincado','Tornillo','Acero','2 pulgadas','Gris',2.50,1),
 ('Bordo PVC Blanco','Bordo PVC','PVC','18mm','Blanco',0.35,1),
-('Bordo PVC Negro','Bordo PVC','PVC','22mm','Negro');
+('Bordo PVC Negro','Bordo PVC','PVC','22mm','Negro',0.40,1);
+
+
+
+
+
+
+

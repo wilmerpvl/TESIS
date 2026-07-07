@@ -94,36 +94,20 @@ exports.eliminarCliente = async (req, res) => {
     const id_usuario = req.query.id_usuario;
 
     try {
-        db.query('SELECT COUNT(*) AS total FROM cotizaciones WHERE id_cliente = ?', [id], async (errCheck, resultsCheck) => {
-            if (errCheck) {
-                console.error(errCheck);
-                return res.status(500).json({ mensaje: 'Error al verificar relaciones del cliente' });
-            }
-            const totalCotizaciones = resultsCheck[0].total;
-            
-            const cliente = await Cliente.findByPk(id);
-            if (!cliente) {
-                return res.status(404).json({ mensaje: 'Cliente no encontrado' });
-            }
-            
-            const nombreCliente = cliente.nombre;
+        const cliente = await Cliente.findByPk(id);
+        if (!cliente) {
+            return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+        }
 
-            if (totalCotizaciones > 0) {
-                await cliente.update({ estado: false });
-                if (id_usuario) {
-                    registrarAuditoria(id_usuario, `Desactivó al cliente: ${nombreCliente} (eliminación lógica por dependencias)`);
-                }
-                return res.json({ mensaje: 'El cliente tiene cotizaciones asociadas, por lo que fue desactivado (eliminación lógica) para conservar la integridad de los datos.' });
-            }
+        const nombreCliente = cliente.nombre;
+        await cliente.update({ estado: false });
 
-            await cliente.destroy();
-            if (id_usuario) {
-                registrarAuditoria(id_usuario, `Eliminó al cliente: ${nombreCliente}`);
-            }
-            res.json({ mensaje: 'Cliente eliminado correctamente' });
-        });
+        if (id_usuario) {
+            registrarAuditoria(id_usuario, `Desactivó al cliente: ${nombreCliente} (eliminación lógica)`);
+        }
+        res.json({ mensaje: 'Cliente desactivado (eliminación lógica) correctamente.' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ mensaje: 'Error al eliminar cliente' });
+        res.status(500).json({ mensaje: 'Error al desactivar cliente' });
     }
 };

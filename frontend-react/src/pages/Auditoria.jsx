@@ -6,6 +6,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 function Auditoria() {
   const [auditoria, setAuditoria] = useState([]);
+  const [alerta, setAlerta] = useState(null);
   
   // Estados para filtros
   const [busqueda, setBusqueda] = useState("");
@@ -66,7 +67,11 @@ function Auditoria() {
   // Exportar los datos filtrados a PDF
   const exportarPDF = () => {
     if (registrosFiltrados.length === 0) {
-      alert("No hay registros que coincidan con los filtros para exportar.");
+      setAlerta({
+        mensaje: "No hay registros que coincidan con los filtros para exportar.",
+        tipo: "warning"
+      });
+      setTimeout(() => setAlerta(null), 4000);
       return;
     }
     const doc = new jsPDF();
@@ -132,6 +137,11 @@ function Auditoria() {
           </button>
         </div>
       </div>
+      {alerta && (
+        <div className={`alerta ${alerta.tipo}`} style={{ marginBottom: "20px" }}>
+          {alerta.mensaje}
+        </div>
+      )}
       {/* Contenedor de Filtros */}
       <div className="card" style={{ marginBottom: "20px", padding: "20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>

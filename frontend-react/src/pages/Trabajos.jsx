@@ -1,21 +1,52 @@
 import "../css/trabajos.css";
-import {
-  useEffect,
-  useState
-} from "react";
-import {
-  obtenerTrabajosDisponibles,
-  crearTrabajo
-}
-  from "../services/cotizacionService";
+import { useEffect, useState } from "react";
+import api from "../services/api";
+import { crearTrabajo } from "../services/cotizacionService";
+
 export default function Trabajos() {
   const [cotizaciones, setCotizaciones] = useState([]);
   const [buscar, setBuscar] = useState("");
   
   // Estados para el Modal de inicio de trabajo
   const [cotizacionSeleccionada, setCotizacionSeleccionada] = useState(null);
-  const [fechaEstimada, setFechaEstimada] = useState("");
   const [prioridad, setPrioridad] = useState("MEDIA");
+
+  // Estado para el modal de detalle
+  const [detalleCotizacion, setDetalleCotizacion] = useState(null);
+  const [enviandoCorreo, setEnviandoCorreo] = useState(null); // id de la cotización que se está enviando
+
+  const [alertaModal, setAlertaModal] = useState({
+    visible: false,
+    titulo: "",
+    mensaje: "",
+    tipo: "warning"
+  });
+
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    titulo: "",
+    mensaje: "",
+    onConfirm: null
+  });
+
+  const mostrarAlerta = (mensaje, titulo = "Atención", tipo = "warning") => {
+    setAlertaModal({
+      visible: true,
+      titulo,
+      mensaje,
+      tipo
+    });
+  };
+
+  const mostrarConfirmacion = (mensaje, onConfirm, titulo = "Confirmar acción") => {
+    setConfirmModal({
+      visible: true,
+      titulo,
+      mensaje,
+      onConfirm
+    });
+  };
+
   useEffect(() => {
     cargar();
   }, []);
@@ -26,45 +57,143 @@ export default function Trabajos() {
       String(c.id_cotizacion).toLowerCase().includes(busqueda) ||
       String(c.cliente || "").toLowerCase().includes(busqueda) ||
       String(c.tipo_mueble || "").toLowerCase().includes(busqueda) ||
-      String(c.total_final || "").toLowerCase().includes(busqueda)
+      String(c.total_final || "").toLowerCase().includes(busqueda) ||
+      String(c.estado || "").toLowerCase().includes(busqueda)
     );
   });
+
   const cargar = async () => {
-    const data = await obtenerTrabajosDisponibles();
-    setCotizaciones(data);
+    try {
+      const res = await api.get("/trabajos-disponibles");
+      setCotizaciones(res.data);
+    } catch (error) {
+      console.error("Error al cargar cotizaciones:", error);
+    }
   };
+
+  const verDetalle = async (id) => {
+    try {
+      const res = await api.get(`/cotizacion-detalle/${id}`);
+      setDetalleCotizacion(res.data);
+    } catch (error) {
+      console.error("Error al cargar detalle:", error);
+      mostrarAlerta("Error al cargar el detalle de la cotización.", "Error", "error");
+    }
+  };
+
+  const descargarCotizacionPDF = async (c) => {
+    try {
+      const res = await api.get(`/cotizacion-detalle/${c.id_cotizacion}`);
+      const data = res.data;
+      
+      // Generar el diagrama de distribución de cortes en un canvas oculto
+      let base64Image = null;
+      if (data.piezas && data.piezas.length > 0) {
+        const canvas = document.createElement("canvas");
+        const piezasFormateadas = data.piezas.map(p => ({
+          nombre: p.pieza_nombre || "Pieza",
+          ancho: parseFloat(p.ancho),
+          alto: parseFloat(p.alto),
+          cantidad: p.cantidad
+        }));
+        const tableroColor = data.piezas[0]?.tablero_color || "Blanco";
+        
+        // Dibujamos en el canvas
+        const { dibujar } = await import("../utils/dibujar");
+        dibujar({ current: canvas }, piezasFormateadas, tableroColor);
+        base64Image = canvas.toDataURL("image/png");
+      }
+      
+      // Usar el generador de PDF unificado
+      const { generarPDFCotizacion } = await import("../utils/pdfGenerator");
+      generarPDFCotizacion(data, base64Image);
+    } catch (error) {
+      console.error("Error al descargar el PDF de cotización:", error);
+      mostrarAlerta("Error al generar el reporte en PDF.", "Error", "error");
+    }
+  };
+
+  const enviarCorreo = async (c) => {
+    if (!c.id_cotizacion) return;
+    setEnviandoCorreo(c.id_cotizacion);
+    try {
+      // 1. Obtener detalles de la cotización
+      const resDetail = await api.get(`/cotizacion-detalle/${c.id_cotizacion}`);
+      const data = resDetail.data;
+      
+      // 2. Generar diagrama de cortes
+      let base64Image = null;
+      if (data.piezas && data.piezas.length > 0) {
+        const canvas = document.createElement("canvas");
+        const piezasFormateadas = data.piezas.map(p => ({
+          nombre: p.pieza_nombre || "Pieza",
+          ancho: parseFloat(p.ancho),
+          alto: parseFloat(p.alto),
+          cantidad: p.cantidad
+        }));
+        const tableroColor = data.piezas[0]?.tablero_color || "Blanco";
+        
+        const { dibujar } = await import("../utils/dibujar");
+        dibujar({ current: canvas }, piezasFormateadas, tableroColor);
+        base64Image = canvas.toDataURL("image/png");
+      }
+      
+      // 3. Generar PDF en memoria
+      const { generarPDFCotizacion } = await import("../utils/pdfGenerator");
+      const doc = generarPDFCotizacion(data, base64Image, false);
+      const pdfBase64 = doc.output("base64");
+      
+      // 4. Enviar correo con el PDF adjunto
+      const res = await api.post(`/enviar-cotizacion-correo/${c.id_cotizacion}`, {
+        pdfBase64
+      });
+      
+      if (res.data.previewUrl) {
+        // En ambiente de desarrollo local usando cuenta test de ethereal
+        mostrarConfirmacion(
+          `¡Cotización enviada con éxito por correo!\n\nDestinatario: ${c.cliente}\n\n¿Desea abrir la previsualización del correo enviado en su navegador?`,
+          () => {
+            window.open(res.data.previewUrl, "_blank");
+          },
+          "Correo Enviado"
+        );
+      } else {
+        mostrarAlerta("¡Cotización enviada con éxito al cliente por correo!", "Éxito", "success");
+      }
+    } catch (error) {
+      console.error("Error al enviar correo:", error);
+      const msg = error.response?.data?.mensaje || "Error al enviar el correo de cotización.";
+      const det = error.response?.data?.detalle ? `\n\nDetalle: ${error.response.data.detalle}` : "";
+      mostrarAlerta(`${msg}${det}`, "Error al enviar correo", "error");
+    } finally {
+      setEnviandoCorreo(null);
+    }
+  };
+
   // Abre el modal interactivo de inicio en lugar de usar prompt()
   const abrirModalIniciar = (cotizacion) => {
-    // Definimos una fecha estimada por defecto de 7 días a partir de hoy
-    const hoy = new Date();
-    hoy.setDate(hoy.getDate() + 7);
-    const fechaPorDefecto = hoy.toISOString().slice(0, 10);
     setCotizacionSeleccionada(cotizacion);
-    setFechaEstimada(fechaPorDefecto);
     setPrioridad("MEDIA");
   };
+
   // Confirma el inicio del trabajo desde el modal
   const confirmarIniciarTrabajo = async () => {
-    if (!fechaEstimada) {
-      alert("Por favor, seleccione una fecha estimada.");
-      return;
-    }
     try {
       // Obtener el ID del usuario logueado desde localStorage
       const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
       const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
       await crearTrabajo({
         id_cotizacion: cotizacionSeleccionada.id_cotizacion,
-        fecha_estimada: fechaEstimada,
+        fecha_estimada: null, // No se requiere fecha estimada
         prioridad: prioridad,
         id_usuario // Se envía para auditar quién creó el trabajo
       });
-      alert("Trabajo creado correctamente");
+      mostrarAlerta("Trabajo creado correctamente", "Éxito", "success");
       setCotizacionSeleccionada(null); // Cerrar el modal
       cargar(); // Recargar la tabla
     } catch (error) {
       console.error(error);
-      alert("Error al crear el trabajo.");
+      mostrarAlerta("Error al crear el trabajo.", "Error", "error");
     }
   };
   return (
@@ -74,23 +203,23 @@ export default function Trabajos() {
           <div className="icon-box">🛠️</div>
           <div>
             <h1>Cotizaciones</h1>
-            <p>Cotizaciones pendientes de producción</p>
+            <p>Historial y gestión de cotizaciones del sistema</p>
           </div>
         </div>
       </div>
       {cotizaciones.length === 0 && (
         <div className="card">
-          <h3>No existen cotizaciones pendientes</h3>
+          <h3>No existen cotizaciones registradas</h3>
         </div>
       )}
       {cotizaciones.length > 0 && (
         <>
           <div className="card search-card" style={{ marginBottom: "20px" }}>
-            <h3>Buscar Cotización Pendiente</h3>
+            <h3>Buscar Cotización</h3>
             <div className="search-box">
               <input
                 type="text"
-                placeholder="Buscar por ID, cliente, mueble..."
+                placeholder="Buscar por ID, cliente, mueble, estado..."
                 value={buscar}
                 onChange={(e) => setBuscar(e.target.value)}
               />
@@ -107,14 +236,14 @@ export default function Trabajos() {
                     <th>Fecha</th>
                     <th>Total</th>
                     <th>Estado</th>
-                    <th>Acción</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {trabajosFiltrados.length === 0 ? (
                     <tr>
                       <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#888" }}>
-                        No se encontraron cotizaciones pendientes con el criterio de búsqueda.
+                        No se encontraron cotizaciones con el criterio de búsqueda.
                       </td>
                     </tr>
                   ) : (
@@ -126,15 +255,51 @@ export default function Trabajos() {
                         <td>{new Date(c.fecha).toLocaleDateString()}</td>
                         <td>${Number(c.total_final).toFixed(2)}</td>
                         <td>
-                          <span className="estado-pendiente">Pendiente</span>
+                          <span className={`estado-badge estado-${c.estado?.toLowerCase() || 'pendiente'}`} style={{
+                            padding: "4px 8px",
+                            borderRadius: "6px",
+                            fontWeight: "bold",
+                            fontSize: "12px",
+                            backgroundColor: c.estado === "APROBADA" ? "#d1fae5" : c.estado === "RECHAZADA" ? "#fee2e2" : "#fef3c7",
+                            color: c.estado === "APROBADA" ? "#059669" : c.estado === "RECHAZADA" ? "#dc2626" : "#d97706"
+                          }}>
+                            {c.estado || "PENDIENTE"}
+                          </span>
                         </td>
                         <td>
-                          <button
-                            className="btn-green"
-                            onClick={() => abrirModalIniciar(c)}
-                          >
-                            Iniciar
-                          </button>
+                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                            <button
+                              className="btn-light"
+                              style={{ padding: "6px 10px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
+                              onClick={() => verDetalle(c.id_cotizacion)}
+                            >
+                              👁️ Detalle
+                            </button>
+                            <button
+                              className="btn-light"
+                              style={{ padding: "6px 10px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
+                              onClick={() => descargarCotizacionPDF(c)}
+                            >
+                              📄 PDF
+                            </button>
+                            <button
+                              className="btn-light"
+                              style={{ padding: "6px 10px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
+                              onClick={() => enviarCorreo(c)}
+                              disabled={enviandoCorreo === c.id_cotizacion}
+                            >
+                              {enviandoCorreo === c.id_cotizacion ? "⏳..." : "📧 Correo"}
+                            </button>
+                            {c.estado === 'PENDIENTE' && (
+                              <button
+                                className="btn-green"
+                                style={{ padding: "6px 10px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
+                                onClick={() => abrirModalIniciar(c)}
+                              >
+                                🔨 Iniciar trabajo
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -145,6 +310,132 @@ export default function Trabajos() {
           </div>
         </>
       )}
+
+      {/* Modal de Detalle de Cotización */}
+      {detalleCotizacion && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 1000
+        }}>
+          <div className="card" style={{
+            width: "600px",
+            maxHeight: "85vh",
+            overflowY: "auto",
+            padding: "25px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "bold", color: "#1e293b" }}>
+                Detalle de Cotización #{detalleCotizacion.cotizacion?.id_cotizacion}
+              </h3>
+              <button 
+                onClick={() => setDetalleCotizacion(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#94a3b8"
+                }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", padding: "12px", backgroundColor: "#f8fafc", borderRadius: "8px", fontSize: "14px", color: "#475569" }}>
+              <div>Cliente: <strong>{detalleCotizacion.cotizacion?.cliente}</strong></div>
+              <div>Mueble: <strong>{detalleCotizacion.cotizacion?.tipo_mueble}</strong></div>
+              <div>Fecha: <strong>{new Date(detalleCotizacion.cotizacion?.fecha).toLocaleDateString()}</strong></div>
+              <div>Total Final: <strong style={{ color: "#24833c" }}>${Number(detalleCotizacion.cotizacion?.total_final).toFixed(2)}</strong></div>
+            </div>
+
+            <div style={{ fontSize: "14px" }}>
+              <h4 style={{ margin: "10px 0 6px 0", fontWeight: "bold" }}>Desglose de Costos</h4>
+              <ul style={{ paddingLeft: "20px", margin: 0, color: "#475569" }}>
+                <li>Materiales (Tableros): ${Number(detalleCotizacion.cotizacion?.total_tableros).toFixed(2)}</li>
+                <li>Accesorios: ${Number(detalleCotizacion.cotizacion?.total_accesorios).toFixed(2)}</li>
+                <li>Mano de obra: ${Number(detalleCotizacion.cotizacion?.mano_obra).toFixed(2)}</li>
+                <li>Transporte: ${Number(detalleCotizacion.cotizacion?.transporte).toFixed(2)}</li>
+              </ul>
+            </div>
+
+            {detalleCotizacion.piezas && detalleCotizacion.piezas.length > 0 && (
+              <div>
+                <h4 style={{ margin: "10px 0 6px 0", fontWeight: "bold" }}>Piezas del Mueble</h4>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                  <thead>
+                    <tr style={{ backgroundColor: "#f1f5f9", textAlign: "left" }}>
+                      <th style={{ padding: "6px" }}>Pieza</th>
+                      <th style={{ padding: "6px" }}>Medidas</th>
+                      <th style={{ padding: "6px" }}>Cantidad</th>
+                      <th style={{ padding: "6px" }}>Costo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {detalleCotizacion.piezas.map((p, idx) => (
+                      <tr key={idx} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                        <td style={{ padding: "6px" }}>{p.pieza_nombre}</td>
+                        <td style={{ padding: "6px" }}>{p.ancho} x {p.alto} cm</td>
+                        <td style={{ padding: "6px" }}>{p.cantidad}</td>
+                        <td style={{ padding: "6px" }}>${Number(p.costo).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {detalleCotizacion.accesorios && detalleCotizacion.accesorios.length > 0 && (
+              <div>
+                <h4 style={{ margin: "10px 0 6px 0", fontWeight: "bold" }}>Accesorios y Herrajes</h4>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                  <thead>
+                    <tr style={{ backgroundColor: "#f1f5f9", textAlign: "left" }}>
+                      <th style={{ padding: "6px" }}>Accesorio</th>
+                      <th style={{ padding: "6px" }}>Cantidad</th>
+                      <th style={{ padding: "6px" }}>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {detalleCotizacion.accesorios.map((acc, idx) => (
+                      <tr key={idx} style={{ borderBottom: "1px solid #e2e8f0" }}>
+                        <td style={{ padding: "6px" }}>{acc.accesorio_nombre}</td>
+                        <td style={{ padding: "6px" }}>{acc.cantidad}</td>
+                        <td style={{ padding: "6px" }}>${Number(acc.subtotal).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
+              <button 
+                className="btn-light" 
+                onClick={() => setDetalleCotizacion(null)}
+                style={{ padding: "8px 20px", cursor: "pointer", border: "1px solid #cbd5e1", borderRadius: "6px" }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de React para Iniciar Trabajo (Reemplazo del Prompt) */}
       {cotizacionSeleccionada && (
         <div style={{
@@ -196,23 +487,7 @@ export default function Trabajos() {
                 Mueble: <strong>{cotizacionSeleccionada.tipo_mueble}</strong>
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                Fecha estimada de entrega
-              </label>
-              <input 
-                type="date" 
-                value={fechaEstimada} 
-                onChange={(e) => setFechaEstimada(e.target.value)}
-                style={{
-                  padding: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
-                  fontSize: "14px",
-                  outline: "none"
-                }}
-              />
-            </div>
+
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
                 Prioridad del trabajo
@@ -248,6 +523,122 @@ export default function Trabajos() {
                 style={{ padding: "8px 20px", cursor: "pointer", borderRadius: "6px" }}
               >
                 Iniciar Trabajo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Alerta Personalizada */}
+      {alertaModal.visible && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 9999
+        }}>
+          <div className="card" style={{
+            width: "380px",
+            padding: "25px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+            textAlign: "center"
+          }}>
+            <div style={{ fontSize: "40px", margin: "0 auto" }}>
+              {alertaModal.tipo === "success" ? "✔️" : alertaModal.tipo === "error" ? "❌" : "⚠️"}
+            </div>
+            
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "bold", color: "#1e293b" }}>
+              {alertaModal.titulo}
+            </h3>
+            
+            <p style={{ margin: 0, fontSize: "14px", color: "#475569", lineHeight: "1.5" }}>
+              {alertaModal.mensaje}
+            </p>
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px", justifyContent: "center" }}>
+              <button 
+                className="btn-green" 
+                onClick={() => setAlertaModal({ ...alertaModal, visible: false })}
+                style={{ padding: "8px 24px", cursor: "pointer", borderRadius: "6px", fontWeight: "bold", backgroundColor: "var(--verde-principal)", color: "white", border: "none" }}
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación Personalizada */}
+      {confirmModal.visible && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 9999
+        }}>
+          <div className="card" style={{
+            width: "380px",
+            padding: "25px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+            textAlign: "center"
+          }}>
+            <div style={{ fontSize: "40px", margin: "0 auto" }}>⚠️</div>
+            
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "bold", color: "#1e293b" }}>
+              {confirmModal.titulo}
+            </h3>
+            
+            <p style={{ margin: 0, fontSize: "14px", color: "#475569", lineHeight: "1.5" }}>
+              {confirmModal.mensaje}
+            </p>
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px", justifyContent: "center" }}>
+              <button 
+                className="btn-light" 
+                onClick={() => setConfirmModal({ ...confirmModal, visible: false })}
+                style={{ padding: "8px 16px", cursor: "pointer", border: "1px solid #cbd5e1", borderRadius: "6px" }}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn-delete" 
+                onClick={() => {
+                  setConfirmModal({ ...confirmModal, visible: false });
+                  if (confirmModal.onConfirm) confirmModal.onConfirm();
+                }}
+                style={{ 
+                  padding: "8px 20px", 
+                  cursor: "pointer", 
+                  backgroundColor: "#ef4444", 
+                  color: "white", 
+                  fontWeight: "bold", 
+                  borderRadius: "6px",
+                  border: "none"
+                }}
+              >
+                Confirmar
               </button>
             </div>
           </div>

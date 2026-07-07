@@ -12,5 +12,6 @@ router.get('/clientes-cotizacion', cotizacionController.obtenerClientesCotizacio
 router.get('/modulo-completo/:id', cotizacionController.obtenerModuloCompleto);
 router.post('/guardar-cotizacion', cotizacionController.guardarCotizacion);
 router.get("/cotizacion-detalle/:id", cotizacionController.obtenerCotizacionDetalle);
+router.post("/enviar-cotizacion-correo/:id", cotizacionController.enviarCotizacionCorreo);
 
 module.exports = router;

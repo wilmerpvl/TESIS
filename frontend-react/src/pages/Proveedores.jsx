@@ -28,6 +28,16 @@ export default function Proveedores() {
   useEffect(() => {
     cargarProveedores();
   }, []);
+  const handleKeyPressOnlyLetters = (e) => {
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+  const handleKeyPressPhone = (e) => {
+    if (!/[0-9\s+-]/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
   // Validar datos antes de guardar
   const validarFormulario = () => {
     let nuevosErrores = {};
@@ -144,6 +154,32 @@ export default function Proveedores() {
       });
     }
   };
+  const activarProveedorDirecto = async (p) => {
+    const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
+    const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
+    const datosEnviar = {
+      nombre: p.nombre,
+      telefono: p.telefono,
+      direccion: p.direccion,
+      correo: p.correo,
+      id_usuario,
+      estado: 1
+    };
+    try {
+      await api.put(`/proveedores/${p.id_proveedor}`, datosEnviar);
+      setAlerta({
+        mensaje: "Proveedor activado correctamente.",
+        tipo: "success"
+      });
+      cargarProveedores();
+    } catch (error) {
+      console.error(error);
+      setAlerta({
+        mensaje: "Error al activar el proveedor.",
+        tipo: "error"
+      });
+    }
+  };
   const editarProveedor = (proveedor) => {
     setEditando(proveedor.id_proveedor);
     setFormData({
@@ -186,6 +222,7 @@ export default function Proveedores() {
                   setFormData({ ...formData, nombre: e.target.value });
                   if (errores.nombre) setErrores({ ...errores, nombre: "" });
                 }}
+                onKeyPress={handleKeyPressOnlyLetters}
                 style={errores.nombre ? { borderColor: "#ef4444" } : {}}
               />
               {errores.nombre && (
@@ -201,9 +238,12 @@ export default function Proveedores() {
                 placeholder="📞 Teléfono"
                 value={formData.telefono}
                 onChange={(e) => {
-                  setFormData({ ...formData, telefono: e.target.value });
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  setFormData({ ...formData, telefono: val });
                   if (errores.telefono) setErrores({ ...errores, telefono: "" });
                 }}
+                onKeyPress={handleKeyPressPhone}
+                maxLength={10}
                 style={errores.telefono ? { borderColor: "#ef4444" } : {}}
               />
               {errores.telefono && (
@@ -346,9 +386,27 @@ export default function Proveedores() {
                   <button className="btn-edit" onClick={() => editarProveedor(p)}>
                     ✏️
                   </button>
-                  <button className="btn-delete" onClick={() => iniciarEliminacion(p)}>
-                    🗑️
-                  </button>
+                  {p.estado ? (
+                    <button className="btn-delete" onClick={() => iniciarEliminacion(p)} title="Inactivar">
+                      🗑️
+                    </button>
+                  ) : (
+                    <button
+                      className="btn-green"
+                      onClick={() => activarProveedorDirecto(p)}
+                      title="Activar"
+                      style={{
+                        padding: "6px 10px",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        borderRadius: "6px",
+                        display: "inline-flex",
+                        alignItems: "center"
+                      }}
+                    >
+                      ✔️
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

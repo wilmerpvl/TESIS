@@ -49,6 +49,39 @@ export default function Progreso() {
   const [fecha,
     setFecha] =
     useState(obtenerFechaActualLocal());
+
+  const [alertaModal, setAlertaModal] = useState({
+    visible: false,
+    titulo: "",
+    mensaje: "",
+    tipo: "warning"
+  });
+
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    titulo: "",
+    mensaje: "",
+    onConfirm: null
+  });
+
+  const mostrarAlerta = (mensaje, titulo = "Atención", tipo = "warning") => {
+    setAlertaModal({
+      visible: true,
+      titulo,
+      mensaje,
+      tipo
+    });
+  };
+
+  const mostrarConfirmacion = (mensaje, onConfirm, titulo = "Confirmar acción") => {
+    setConfirmModal({
+      visible: true,
+      titulo,
+      mensaje,
+      onConfirm
+    });
+  };
+
   useEffect(() => {
     cargarTrabajos();
   }, []);
@@ -106,84 +139,100 @@ export default function Progreso() {
         console.error(error);
       }
     };
-  const guardarAvance =
-    async () => {
-      if (
-        !trabajoSeleccionado
-      ) {
+  const handleKeyPressOnlyNumbers = (e) => {
+    if (!/[0-9]/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  const guardarAvance = async () => {
+    if (!trabajoSeleccionado) {
+      return;
+    }
+    // Validación del porcentaje en el frontend
+    if (porcentaje === "") {
+      mostrarAlerta("Por favor, ingrese el porcentaje de avance.", "Validación");
+      return;
+    }
+    const pctVal = parseInt(porcentaje);
+    if (isNaN(pctVal) || pctVal <= 0 || pctVal > 100) {
+      mostrarAlerta("Por favor, ingrese un porcentaje de avance válido entre 1 y 100.", "Validación");
+      return;
+    }
+    // Validación de la descripción
+    if (!descripcion || !descripcion.trim()) {
+      mostrarAlerta("Por favor, ingrese una descripción detallada del avance realizado.", "Validación");
+      return;
+    }
+    if (descripcion.trim().length < 5) {
+      mostrarAlerta("La descripción del avance debe tener al menos 5 caracteres.", "Validación");
+      return;
+    }
+    // Validación de la imagen (evidencia fotográfica)
+    if (!imagen) {
+      mostrarAlerta("Por favor, seleccione un archivo de imagen como evidencia fotográfica.", "Validación");
+      return;
+    }
+    // Validación de fecha (no puede ser del futuro)
+    if (fecha) {
+      const fechaSelec = new Date(fecha + "T00:00:00");
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      if (fechaSelec > hoy) {
+        mostrarAlerta("La fecha del avance no puede ser en el futuro.", "Validación");
         return;
       }
-      // Validación del porcentaje en el frontend
-      const pctVal = parseInt(porcentaje);
-      if (isNaN(pctVal) || pctVal < 0 || pctVal > 100) {
-        alert("Por favor, ingrese un porcentaje de avance válido entre 0 y 100.");
-        return;
-      }
-      try {
-        // Obtener el ID del usuario logueado desde localStorage
-        const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
-        const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
-        await registrarAvance({
-          id_trabajo:
+    }
+    try {
+      // Obtener el ID del usuario logueado desde localStorage
+      const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
+      const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
+      await registrarAvance({
+        id_trabajo: trabajoSeleccionado.id_trabajo,
+        porcentaje: pctVal,
+        descripcion,
+        imagen,
+        id_usuario, // Se envía para auditar quién registró el avance
+        fecha // Se envía la fecha seleccionada manualmente
+      });
+      mostrarAlerta("Avance registrado correctamente", "Éxito", "success");
+      setPorcentaje("");
+      setDescripcion("");
+      setImagen(null);
+      setFecha(obtenerFechaActualLocal());
+      verTrabajo(trabajoSeleccionado.id_trabajo);
+      cargarTrabajos();
+    } catch (error) {
+      console.error(error);
+      mostrarAlerta(error.message || "Error al registrar el avance", "Error", "error");
+    }
+  };
+  const completarTrabajo = () => {
+    if (!trabajoSeleccionado) {
+      return;
+    }
+    mostrarConfirmacion(
+      `¿Está seguro que desea finalizar el trabajo #${trabajoSeleccionado.id_trabajo}? Esta acción lo marcará como completado al 100%.`,
+      async () => {
+        try {
+          const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
+          const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
+          await finalizarTrabajo(
             trabajoSeleccionado.id_trabajo,
-          porcentaje: pctVal,
-          descripcion,
-          imagen,
-          id_usuario, // Se envía para auditar quién registró el avance
-          fecha // Se envía la fecha seleccionada manualmente
-        });
-        alert(
-          "Avance registrado"
-        );
-        setPorcentaje("");
-        setDescripcion("");
-        setImagen(null);
-        setFecha(obtenerFechaActualLocal());
-        verTrabajo(
-          trabajoSeleccionado.id_trabajo
-        );
-        cargarTrabajos();
-      }
-      catch (error) {
-        console.error(error);
-        alert(error.message || "Error al registrar el avance");
-      }
-    };
-  const completarTrabajo =
-    async () => {
-      if (
-        !trabajoSeleccionado
-      ) {
-        return;
-      }
-      const confirmar =
-        window.confirm(
-          "¿Finalizar trabajo?"
-        );
-      if (!confirmar) {
-        return;
-      }
-      try {
-        // Obtener el ID del usuario logueado desde localStorage
-        const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
-        const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
-        await finalizarTrabajo(
-          trabajoSeleccionado.id_trabajo,
-          id_usuario // Se envía para auditar quién completó el trabajo
-        );
-        alert(
-          "Trabajo completado"
-        );
-        setTrabajoSeleccionado(
-          null
-        );
-        setAvances([]);
-        cargarTrabajos();
-      }
-      catch (error) {
-        console.error(error);
-      }
-    };
+            id_usuario
+          );
+          mostrarAlerta("Trabajo completado con éxito", "Éxito", "success");
+          setTrabajoSeleccionado(null);
+          setAvances([]);
+          cargarTrabajos();
+        } catch (error) {
+          console.error(error);
+          mostrarAlerta("Error al intentar completar el trabajo.", "Error", "error");
+        }
+      },
+      "¿Finalizar trabajo?"
+    );
+  };
   return (
     <div>
       <div className="page-header">
@@ -268,6 +317,7 @@ export default function Progreso() {
                   <th>Trabajo</th>
                   <th>Cliente</th>
                   <th>Mueble</th>
+                  <th>Fecha Inicio</th>
                   <th>Avance</th>
                   <th>Estado</th>
                   <th>Acción</th>
@@ -276,7 +326,7 @@ export default function Progreso() {
               <tbody>
                 {trabajosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+                    <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#666" }}>
                       No se encontraron trabajos en proceso con el criterio de búsqueda.
                     </td>
                   </tr>
@@ -286,6 +336,7 @@ export default function Progreso() {
                       <td>#{t.id_trabajo}</td>
                       <td>{t.cliente}</td>
                       <td>{t.tipo_mueble}</td>
+                      <td>{t.fecha_inicio ? new Date(t.fecha_inicio).toLocaleDateString() : "-"}</td>
                       <td>{t.avance}%</td>
                       <td>
                         <span className="estado-proceso">En proceso</span>
@@ -316,6 +367,7 @@ export default function Progreso() {
                   <th>Trabajo</th>
                   <th>Cliente</th>
                   <th>Mueble</th>
+                  <th>Fecha Inicio</th>
                   <th>Fecha Fin</th>
                   <th>Estado</th>
                   <th>Acción</th>
@@ -324,7 +376,7 @@ export default function Progreso() {
               <tbody>
                 {trabajosCompletadosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+                    <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#666" }}>
                       No se encontraron trabajos finalizados con el criterio de búsqueda.
                     </td>
                   </tr>
@@ -334,7 +386,8 @@ export default function Progreso() {
                       <td>#{t.id_trabajo}</td>
                       <td>{t.cliente}</td>
                       <td>{t.tipo_mueble}</td>
-                      <td>{t.fecha_fin ? new Date(t.fecha_fin).toLocaleDateString() : ""}</td>
+                      <td>{t.fecha_inicio ? new Date(t.fecha_inicio).toLocaleDateString() : "-"}</td>
+                      <td>{t.fecha_fin ? new Date(t.fecha_fin).toLocaleDateString() : "-"}</td>
                       <td>
                         <span className="estado-proceso" style={{ backgroundColor: "#d1fae5", color: "#065f46" }}>
                           Completado
@@ -452,6 +505,7 @@ export default function Progreso() {
                       max="100"
                       value={porcentaje}
                       onChange={(e) => setPorcentaje(e.target.value)}
+                      onKeyPress={handleKeyPressOnlyNumbers}
                     />
                   </div>
                   <div>
@@ -624,6 +678,121 @@ export default function Progreso() {
               </button>
             </div>
           )}
+        </div>
+      )}
+      {/* Modal de Alerta Personalizada */}
+      {alertaModal.visible && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 9999
+        }}>
+          <div className="card" style={{
+            width: "380px",
+            padding: "25px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+            textAlign: "center"
+          }}>
+            <div style={{ fontSize: "40px", margin: "0 auto" }}>
+              {alertaModal.tipo === "success" ? "✔️" : alertaModal.tipo === "error" ? "❌" : "⚠️"}
+            </div>
+            
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "bold", color: "#1e293b" }}>
+              {alertaModal.titulo}
+            </h3>
+            
+            <p style={{ margin: 0, fontSize: "14px", color: "#475569", lineHeight: "1.5" }}>
+              {alertaModal.mensaje}
+            </p>
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px", justifyContent: "center" }}>
+              <button 
+                className="btn-green" 
+                onClick={() => setAlertaModal({ ...alertaModal, visible: false })}
+                style={{ padding: "8px 24px", cursor: "pointer", borderRadius: "6px", fontWeight: "bold", backgroundColor: "var(--verde-principal)", color: "white", border: "none" }}
+              >
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación Personalizada */}
+      {confirmModal.visible && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 9999
+        }}>
+          <div className="card" style={{
+            width: "380px",
+            padding: "25px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+            textAlign: "center"
+          }}>
+            <div style={{ fontSize: "40px", margin: "0 auto" }}>⚠️</div>
+            
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "bold", color: "#1e293b" }}>
+              {confirmModal.titulo}
+            </h3>
+            
+            <p style={{ margin: 0, fontSize: "14px", color: "#475569", lineHeight: "1.5" }}>
+              {confirmModal.mensaje}
+            </p>
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px", justifyContent: "center" }}>
+              <button 
+                className="btn-light" 
+                onClick={() => setConfirmModal({ ...confirmModal, visible: false })}
+                style={{ padding: "8px 16px", cursor: "pointer", border: "1px solid #cbd5e1", borderRadius: "6px" }}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn-delete" 
+                onClick={() => {
+                  setConfirmModal({ ...confirmModal, visible: false });
+                  if (confirmModal.onConfirm) confirmModal.onConfirm();
+                }}
+                style={{ 
+                  padding: "8px 20px", 
+                  cursor: "pointer", 
+                  backgroundColor: "#ef4444", 
+                  color: "white", 
+                  fontWeight: "bold", 
+                  borderRadius: "6px",
+                  border: "none"
+                }}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

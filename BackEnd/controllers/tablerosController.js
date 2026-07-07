@@ -78,7 +78,8 @@ exports.guardarTablero = async (req, res) => {
             espesor: parseFloat(espesor),
             precio_tablero: parseFloat(precio_tablero),
             costo_corte: parseFloat(costo_corte),
-            id_proveedor
+            imagen: req.file ? req.file.filename : null,
+            id_proveedor: parseInt(id_proveedor) || null
         });
 
         if (id_usuario) {
@@ -149,8 +150,9 @@ exports.actualizarTablero = async (req, res) => {
             espesor: parseFloat(espesor),
             precio_tablero: parseFloat(precio_tablero),
             costo_corte: parseFloat(costo_corte),
-            id_proveedor,
-            estado: estado !== undefined ? estado : true
+            imagen: req.file ? req.file.filename : tablero.imagen,
+            id_proveedor: parseInt(id_proveedor) || null,
+            estado: estado !== undefined ? (estado === 'true' || estado === '1' || estado === 1 || estado === true) : true
         });
 
         if (id_usuario) {
@@ -168,36 +170,20 @@ exports.eliminarTablero = async (req, res) => {
     const id_usuario = req.query.id_usuario;
 
     try {
-        db.query(`SELECT COUNT(*) AS total FROM detalle_piezas_cotizacion WHERE id_tablero = ?`, [id], async (errCheck, resultsCheck) => {
-            if (errCheck) {
-                console.error(errCheck);
-                return res.status(500).json({ mensaje: 'Error al verificar relaciones del tablero' });
-            }
-            const total = resultsCheck[0].total;
+        const tablero = await Tablero.findByPk(id);
+        if (!tablero) {
+            return res.status(404).json({ mensaje: 'Tablero no encontrado' });
+        }
 
-            const tablero = await Tablero.findByPk(id);
-            if (!tablero) {
-                return res.status(404).json({ mensaje: 'Tablero no encontrado' });
-            }
+        const nombreTab = tablero.nombre;
+        await tablero.update({ estado: false });
 
-            const nombreTab = tablero.nombre;
-
-            if (total > 0) {
-                await tablero.update({ estado: false });
-                if (id_usuario) {
-                    registrarAuditoria(id_usuario, `Desactivó el tablero: ${nombreTab} (eliminación lógica por dependencias)`);
-                }
-                return res.json({ mensaje: `El tablero está asociado a ${total} detalle(s) de cotización, por lo que fue desactivado (eliminación lógica) para conservar la integridad.` });
-            }
-
-            await tablero.destroy();
-            if (id_usuario) {
-                registrarAuditoria(id_usuario, `Eliminó el tablero: ${nombreTab}`);
-            }
-            res.json({ mensaje: 'Tablero eliminado correctamente' });
-        });
+        if (id_usuario) {
+            registrarAuditoria(id_usuario, `Desactivó el tablero: ${nombreTab} (eliminación lógica)`);
+        }
+        res.json({ mensaje: 'Tablero desactivado (eliminación lógica) correctamente.' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ mensaje: 'Error al eliminar el tablero de la base de datos.' });
+        res.status(500).json({ mensaje: 'Error al desactivar tablero' });
     }
 };

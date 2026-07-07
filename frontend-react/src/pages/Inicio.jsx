@@ -165,7 +165,7 @@ function Inicio() {
                             ).toFixed(2)}
                         </h1>
                         <p>
-                            Cotizaciones generadas
+                            Trabajos iniciados
                         </p>
                     </div>
 

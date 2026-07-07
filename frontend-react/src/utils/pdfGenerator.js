@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export const generarPDFCotizacion = (cotizacionData, imagenCorte = null) => {
+export const generarPDFCotizacion = (cotizacionData, imagenCorte = null, shouldSave = true) => {
     const { cotizacion, piezas, accesorios } = cotizacionData;
     const doc = new jsPDF();
 
@@ -167,5 +167,8 @@ export const generarPDFCotizacion = (cotizacionData, imagenCorte = null) => {
         doc.addImage(imagenCorte, "PNG", 14, currentY + 5, 182, 90);
     }
 
-    doc.save(`cotizacion-${cotizacion.id_cotizacion || "nueva"}.pdf`);
+    if (shouldSave) {
+        doc.save(`cotizacion-${cotizacion.id_cotizacion || "nueva"}.pdf`);
+    }
+    return doc;
 };

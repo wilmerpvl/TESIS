@@ -31,6 +31,21 @@ export default function Cotizacion() {
     const [transporte, setTransporte] = useState(0);
     const [mostrarResultado, setMostrarResultado] = useState(false);
     const [imagenCorte, setImagenCorte] = useState("");
+    const [alertaModal, setAlertaModal] = useState({
+        visible: false,
+        titulo: "",
+        mensaje: "",
+        tipo: "warning"
+    });
+
+    const mostrarAlerta = (mensaje, titulo = "Atención", tipo = "warning") => {
+        setAlertaModal({
+            visible: true,
+            titulo,
+            mensaje,
+            tipo
+        });
+    };
     // =====================================
     // CARGA INICIAL
     // =====================================
@@ -73,7 +88,7 @@ export default function Cotizacion() {
     // =====================================
     const calcularCotizacion = () => {
         if (!tableroSeleccionado) {
-            alert("Seleccione un tablero");
+            mostrarAlerta("Seleccione un tablero", "Validación");
             return;
         }
         let piezas = [];
@@ -179,11 +194,11 @@ export default function Cotizacion() {
                 id_usuario // Se envía para registrar en auditoría
             };
             const data = await guardarCotizacion(payload);
-            alert(data.mensaje || data.message || "Cotización guardada correctamente.");
+            mostrarAlerta(data.mensaje || data.message || "Cotización guardada correctamente.", "Éxito", "success");
             setMostrarResultado(false);
         } catch (error) {
             console.error(error);
-            alert("Error al guardar la cotización");
+            mostrarAlerta("Error al guardar la cotización", "Error", "error");
         }
     };
     return (
@@ -308,6 +323,55 @@ export default function Cotizacion() {
                 accesoriosDisponibles={accesoriosDisponibles}
                 onGuardar={guardarCotizacionBD}
             />
+            {/* Modal de Alerta Personalizada */}
+            {alertaModal.visible && (
+                <div style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "rgba(0, 0, 0, 0.4)",
+                    backdropFilter: "blur(4px)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 9999
+                }}>
+                    <div className="card" style={{
+                        width: "380px",
+                        padding: "25px",
+                        backgroundColor: "white",
+                        borderRadius: "12px",
+                        boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "18px",
+                        textAlign: "center"
+                    }}>
+                        <div style={{ fontSize: "40px", margin: "0 auto" }}>
+                            {alertaModal.tipo === "success" ? "✔️" : alertaModal.tipo === "error" ? "❌" : "⚠️"}
+                        </div>
+                        
+                        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "bold", color: "#1e293b" }}>
+                            {alertaModal.titulo}
+                        </h3>
+                        
+                        <p style={{ margin: 0, fontSize: "14px", color: "#475569", lineHeight: "1.5" }}>
+                            {alertaModal.mensaje}
+                        </p>
+                        <div style={{ display: "flex", gap: "10px", marginTop: "10px", justifyContent: "center" }}>
+                            <button 
+                                className="btn-green" 
+                                onClick={() => setAlertaModal({ ...alertaModal, visible: false })}
+                                style={{ padding: "8px 24px", cursor: "pointer", borderRadius: "6px", fontWeight: "bold", backgroundColor: "var(--verde-principal)", color: "white", border: "none" }}
+                            >
+                                Aceptar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -45,6 +45,10 @@ const Tablero = sequelize.define('Tablero', {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false
     },
+    imagen: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
     id_proveedor: {
         type: DataTypes.INTEGER,
         allowNull: true,

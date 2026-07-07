@@ -72,6 +72,19 @@ function Accesorios() {
       });
     }
   };
+  const handleKeyPressDecimals = (e) => {
+    if (!/[0-9.]/.test(e.key)) {
+      e.preventDefault();
+    }
+    if (e.key === "." && e.target.value.includes(".")) {
+      e.preventDefault();
+    }
+  };
+  const handleKeyPressOnlyLetters = (e) => {
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
   // Validaciones del Formulario
   const validarFormulario = () => {
     let nuevosErrores = {};
@@ -129,6 +142,35 @@ function Accesorios() {
       console.error(error);
       setAlerta({
         mensaje: error.response?.data?.mensaje || "Error al procesar la solicitud.",
+        tipo: "error"
+      });
+    }
+  };
+  const activarAccesorioDirecto = async (accesorio) => {
+    const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
+    const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
+    const datosEnviar = {
+      nombre: accesorio.nombre,
+      categoria: accesorio.categoria || accesorio.tipo || "",
+      material: accesorio.material || "",
+      tamano: accesorio.tamano || "",
+      color: accesorio.color || "",
+      precio_unitario: accesorio.precio_unitario,
+      id_proveedor: accesorio.id_proveedor || "",
+      id_usuario,
+      estado: 1
+    };
+    try {
+      await actualizarAccesorio(accesorio.id_accesorio, datosEnviar);
+      setAlerta({
+        mensaje: "Accesorio activado correctamente.",
+        tipo: "success"
+      });
+      cargarDatos();
+    } catch (error) {
+      console.error(error);
+      setAlerta({
+        mensaje: "Error al activar el accesorio.",
         tipo: "error"
       });
     }
@@ -204,6 +246,7 @@ function Accesorios() {
                 placeholder="Nombre"
                 value={form.nombre}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressOnlyLetters}
                 style={errores.nombre ? { borderColor: "#ef4444" } : {}}
               />
               {errores.nombre && (
@@ -270,6 +313,7 @@ function Accesorios() {
                 placeholder="Color"
                 value={form.color}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressOnlyLetters}
               />
             </div>
             {/* Precio */}
@@ -281,6 +325,7 @@ function Accesorios() {
                 placeholder="Precio"
                 value={form.precio_unitario}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressDecimals}
                 style={errores.precio_unitario ? { borderColor: "#ef4444" } : {}}
               />
               {errores.precio_unitario && (
@@ -403,9 +448,27 @@ function Accesorios() {
                   <button className="btn-edit" onClick={() => editar(a)}>
                     ✏️
                   </button>
-                  <button className="btn-delete" onClick={() => iniciarEliminacion(a)}>
-                    🗑️
-                  </button>
+                  {a.estado ? (
+                    <button className="btn-delete" onClick={() => iniciarEliminacion(a)} title="Inactivar">
+                      🗑️
+                    </button>
+                  ) : (
+                    <button
+                      className="btn-green"
+                      onClick={() => activarAccesorioDirecto(a)}
+                      title="Activar"
+                      style={{
+                        padding: "6px 10px",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        borderRadius: "6px",
+                        display: "inline-flex",
+                        alignItems: "center"
+                      }}
+                    >
+                      ✔️
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

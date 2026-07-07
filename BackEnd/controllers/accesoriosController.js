@@ -132,36 +132,20 @@ exports.eliminarAccesorio = async (req, res) => {
     const id_usuario = req.query.id_usuario;
 
     try {
-        db.query(`SELECT COUNT(*) AS total FROM detalle_accesorios_cotizacion WHERE id_accesorio = ?`, [id], async (errCheck, resultsCheck) => {
-            if (errCheck) {
-                console.error(errCheck);
-                return res.status(500).json({ mensaje: 'Error al verificar relaciones del accesorio' });
-            }
-            const total = resultsCheck[0].total;
+        const accesorio = await Accesorio.findByPk(id);
+        if (!accesorio) {
+            return res.status(404).json({ mensaje: 'Accesorio no encontrado' });
+        }
 
-            const accesorio = await Accesorio.findByPk(id);
-            if (!accesorio) {
-                return res.status(404).json({ mensaje: 'Accesorio no encontrado' });
-            }
+        const nombreAcc = accesorio.nombre;
+        await accesorio.update({ estado: false });
 
-            const nombreAcc = accesorio.nombre;
-
-            if (total > 0) {
-                await accesorio.update({ estado: false });
-                if (id_usuario) {
-                    registrarAuditoria(id_usuario, `Desactivó el accesorio: ${nombreAcc} (eliminación lógica por dependencias)`);
-                }
-                return res.json({ mensaje: `El accesorio está asociado a ${total} detalle(s) de cotización, por lo que fue desactivado (eliminación lógica) para conservar la integridad.` });
-            }
-
-            await accesorio.destroy();
-            if (id_usuario) {
-                registrarAuditoria(id_usuario, `Eliminó el accesorio: ${nombreAcc}`);
-            }
-            res.json({ mensaje: 'Accesorio eliminado correctamente' });
-        });
+        if (id_usuario) {
+            registrarAuditoria(id_usuario, `Desactivó el accesorio: ${nombreAcc} (eliminación lógica)`);
+        }
+        res.json({ mensaje: 'Accesorio desactivado (eliminación lógica) correctamente.' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ mensaje: 'Error al eliminar el accesorio de la base de datos.' });
+        res.status(500).json({ mensaje: 'Error al desactivar el accesorio de la base de datos.' });
     }
 };

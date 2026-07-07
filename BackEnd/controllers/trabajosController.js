@@ -7,12 +7,12 @@ exports.obtenerTrabajosDisponibles = (req, res) => {
             c.id_cotizacion,
             c.fecha,
             c.total_final,
+            c.estado,
             cl.nombre AS cliente,
             tm.nombre AS tipo_mueble
         FROM cotizaciones c
         INNER JOIN clientes cl ON c.id_cliente = cl.id_cliente
         INNER JOIN tipos_mueble tm ON c.id_tipo = tm.id_tipo
-        WHERE c.estado = 'PENDIENTE'
         ORDER BY c.id_cotizacion DESC
     `;
     conexion.query(sql, (err, result) => {

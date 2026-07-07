@@ -32,9 +32,16 @@ export default function Clientes() {
         }
     }
     function handleChange(e) {
+        let value = e.target.value;
+        if (e.target.name === "identificacion") {
+            value = value.replace(/\D/g, "").slice(0, 13);
+        } else if (e.target.name === "telefono") {
+            value = value.replace(/\D/g, "").slice(0, 10);
+        }
+
         setForm({
             ...form,
-            [e.target.name]: e.target.value
+            [e.target.name]: value
         });
         
         // Limpiar el error de este campo al escribir
@@ -45,6 +52,21 @@ export default function Clientes() {
             });
         }
     }
+    const handleKeyPressOnlyLetters = (e) => {
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]$/.test(e.key)) {
+            e.preventDefault();
+        }
+    };
+    const handleKeyPressOnlyNumbers = (e) => {
+        if (!/[0-9]/.test(e.key)) {
+            e.preventDefault();
+        }
+    };
+    const handleKeyPressPhone = (e) => {
+        if (!/[0-9\s+-]/.test(e.key)) {
+            e.preventDefault();
+        }
+    };
     // Validar datos antes de guardar
     const validarFormulario = () => {
         let nuevosErrores = {};
@@ -157,6 +179,33 @@ export default function Clientes() {
             });
         }
     };
+    const activarClienteDirecto = async (cliente) => {
+        const usuario = JSON.parse(localStorage.getItem("usuario"));
+        const id_usuario = usuario ? (usuario.id || usuario.id_usuario) : null;
+        const datosEnviar = {
+            nombre: cliente.nombre,
+            identificacion: cliente.identificacion,
+            telefono: cliente.telefono,
+            correo: cliente.correo,
+            direccion: cliente.direccion,
+            id_usuario,
+            estado: 1
+        };
+        try {
+            await api.put(`/clientes/${cliente.id_cliente}`, datosEnviar);
+            setAlerta({
+                mensaje: "Cliente activado correctamente.",
+                tipo: "success"
+            });
+            cargarClientes();
+        } catch (error) {
+            console.error(error);
+            setAlerta({
+                mensaje: "Error al activar el cliente.",
+                tipo: "error"
+            });
+        }
+    };
     function editarCliente(cliente) {
         setForm({
             nombre: cliente.nombre,
@@ -197,6 +246,7 @@ export default function Clientes() {
                                 placeholder="Nombre"
                                 value={form.nombre}
                                 onChange={handleChange}
+                                onKeyPress={handleKeyPressOnlyLetters}
                                 style={errores.nombre ? { borderColor: "#ef4444" } : {}}
                             />
                             {errores.nombre && (
@@ -212,6 +262,8 @@ export default function Clientes() {
                                 placeholder="Cédula / RUC"
                                 value={form.identificacion}
                                 onChange={handleChange}
+                                onKeyPress={handleKeyPressOnlyNumbers}
+                                maxLength={13}
                                 style={errores.identificacion ? { borderColor: "#ef4444" } : {}}
                             />
                             {errores.identificacion && (
@@ -227,6 +279,8 @@ export default function Clientes() {
                                 placeholder="Teléfono"
                                 value={form.telefono}
                                 onChange={handleChange}
+                                onKeyPress={handleKeyPressPhone}
+                                maxLength={10}
                                 style={errores.telefono ? { borderColor: "#ef4444" } : {}}
                             />
                             {errores.telefono && (
@@ -371,12 +425,31 @@ export default function Clientes() {
                                     >
                                         ✏️
                                     </button>
-                                    <button
-                                        className="btn-delete"
-                                        onClick={() => iniciarEliminacion(c)}
-                                    >
-                                        🗑️
-                                    </button>
+                                    {c.estado ? (
+                                        <button
+                                            className="btn-delete"
+                                            onClick={() => iniciarEliminacion(c)}
+                                            title="Inactivar"
+                                        >
+                                            🗑️
+                                        </button>
+                                    ) : (
+                                        <button
+                                            className="btn-green"
+                                            onClick={() => activarClienteDirecto(c)}
+                                            title="Activar"
+                                            style={{
+                                                padding: "6px 10px",
+                                                fontSize: "13px",
+                                                fontWeight: "bold",
+                                                borderRadius: "6px",
+                                                display: "inline-flex",
+                                                alignItems: "center"
+                                            }}
+                                        >
+                                            ✔️
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

@@ -21,6 +21,21 @@ function Modulos({
 
 
 
+    const handleKeyPressDecimals = (e) => {
+        if (!/[0-9.]/.test(e.key)) {
+            e.preventDefault();
+        }
+        if (e.key === "." && e.target.value.includes(".")) {
+            e.preventDefault();
+        }
+    };
+
+    const handleKeyPressOnlyNumbers = (e) => {
+        if (!/[0-9]/.test(e.key)) {
+            e.preventDefault();
+        }
+    };
+
     useEffect(() => {
 
         if (!tipoSeleccionado) return;
@@ -66,7 +81,8 @@ function Modulos({
 
     const agregarModulo = async (
         idModulo,
-        nombreModulo
+        nombreModulo,
+        id_seccion
     ) => {
 
         if (!idModulo) return;
@@ -97,6 +113,7 @@ function Modulos({
                     id: Date.now(),
                     id_modulo: idModulo,
                     nombre: nombreModulo,
+                    id_seccion: id_seccion,
                     piezas: piezasPreparadas
                 }
             ]);
@@ -178,27 +195,19 @@ function Modulos({
 
 
     return (
-
         <>
-
             {secciones.map(
                 seccion => (
-
                     <div
-                        key={
-                            seccion.id_seccion
-                        }
+                        key={seccion.id_seccion}
                         className="card"
                     >
-
                         <h2>
                             {seccion.nombre}
                         </h2>
 
                         <SelectorModulo
-                            seccion={
-                                seccion
-                            }
+                            seccion={seccion}
                             modulos={
                                 modulosDisponibles[
                                 seccion.id_seccion
@@ -209,170 +218,131 @@ function Modulos({
                             }
                         />
 
-                    </div>
+                        {/* Módulos agregados en esta sección */}
+                        {modulos.filter(m => m.id_seccion === seccion.id_seccion).map(
+                            modulo => (
+                                <div
+                                    key={modulo.id}
+                                    className="card modulo-item"
+                                    style={{ marginTop: "15px", border: "1px solid #e2e8f0" }}
+                                >
+                                    <div className="partes-header">
+                                        <h3>{modulo.nombre}</h3>
+                                        <button
+                                            className="btn-delete"
+                                            onClick={() => eliminarModulo(modulo.id)}
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
 
+                                    <div className="table-card">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Pieza</th>
+                                                    <th>Ancho</th>
+                                                    <th>Alto</th>
+                                                    <th>Cantidad</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {modulo.piezas?.map((pieza, index) => (
+                                                    <tr key={index}>
+                                                        <td>{pieza.nombre}</td>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={pieza.ancho}
+                                                                onChange={(e) =>
+                                                                    actualizarPieza(
+                                                                        modulo.id,
+                                                                        index,
+                                                                        "ancho",
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                onKeyPress={handleKeyPressDecimals}
+                                                                style={{
+                                                                    width: "100%",
+                                                                    minWidth: "80px",
+                                                                    maxWidth: "120px",
+                                                                    padding: "8px 12px",
+                                                                    border: "1px solid #cbd5e1",
+                                                                    borderRadius: "8px",
+                                                                    outline: "none",
+                                                                    fontSize: "14px",
+                                                                    textAlign: "center"
+                                                                }}
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={pieza.alto}
+                                                                onChange={(e) =>
+                                                                    actualizarPieza(
+                                                                        modulo.id,
+                                                                        index,
+                                                                        "alto",
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                onKeyPress={handleKeyPressDecimals}
+                                                                style={{
+                                                                    width: "100%",
+                                                                    minWidth: "80px",
+                                                                    maxWidth: "120px",
+                                                                    padding: "8px 12px",
+                                                                    border: "1px solid #cbd5e1",
+                                                                    borderRadius: "8px",
+                                                                    outline: "none",
+                                                                    fontSize: "14px",
+                                                                    textAlign: "center"
+                                                                }}
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                min="1"
+                                                                value={pieza.cantidad}
+                                                                onChange={(e) =>
+                                                                    actualizarPieza(
+                                                                        modulo.id,
+                                                                        index,
+                                                                        "cantidad",
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                onKeyPress={handleKeyPressOnlyNumbers}
+                                                                style={{
+                                                                    width: "100%",
+                                                                    minWidth: "80px",
+                                                                    maxWidth: "120px",
+                                                                    padding: "8px 12px",
+                                                                    border: "1px solid #cbd5e1",
+                                                                    borderRadius: "8px",
+                                                                    outline: "none",
+                                                                    fontSize: "14px",
+                                                                    textAlign: "center"
+                                                                }}
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )
+                        )}
+                    </div>
                 )
             )}
-
-            {modulos.map(
-                modulo => (
-
-                    <div
-                        key={modulo.id}
-                        className="card modulo-item"
-                    >
-
-                        <div className="partes-header">
-
-                            <h3>
-                                {modulo.nombre}
-                            </h3>
-
-                            <button
-                                className="btn-delete"
-                                onClick={() =>
-                                    eliminarModulo(
-                                        modulo.id
-                                    )
-                                }
-                            >
-                                Eliminar
-                            </button>
-
-                        </div>
-
-                        <div className="table-card">
-
-                            <table>
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>
-                                            Pieza
-                                        </th>
-
-                                        <th>
-                                            Ancho
-                                        </th>
-
-                                        <th>
-                                            Alto
-                                        </th>
-
-                                        <th>
-                                            Cantidad
-                                        </th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody>
-
-                                    {modulo.piezas?.map(
-                                        (
-                                            pieza,
-                                            index
-                                        ) => (
-
-                                            <tr
-                                                key={
-                                                    index
-                                                }
-                                            >
-
-                                                <td>
-                                                    {
-                                                        pieza.nombre
-                                                    }
-                                                </td>
-
-                                                <td>
-
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        value={
-                                                            pieza.ancho
-                                                        }
-                                                        onChange={(
-                                                            e
-                                                        ) =>
-                                                            actualizarPieza(
-                                                                modulo.id,
-                                                                index,
-                                                                "ancho",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-
-                                                </td>
-
-                                                <td>
-
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        value={
-                                                            pieza.alto
-                                                        }
-                                                        onChange={(
-                                                            e
-                                                        ) =>
-                                                            actualizarPieza(
-                                                                modulo.id,
-                                                                index,
-                                                                "alto",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-
-                                                </td>
-
-                                                <td>
-
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        value={
-                                                            pieza.cantidad
-                                                        }
-                                                        onChange={(
-                                                            e
-                                                        ) =>
-                                                            actualizarPieza(
-                                                                modulo.id,
-                                                                index,
-                                                                "cantidad",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-
-                                                </td>
-
-                                            </tr>
-
-                                        )
-                                    )}
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
-                )
-            )}
-
         </>
-
     );
 
 }
@@ -380,6 +350,7 @@ function Modulos({
 
 
 function SelectorModulo({
+    seccion,
     modulos,
     agregarModulo
 }) {
@@ -439,7 +410,8 @@ function SelectorModulo({
 
                     agregarModulo(
                         modulo.id_modulo,
-                        modulo.nombre
+                        modulo.nombre,
+                        seccion.id_seccion
                     );
 
                     setSeleccion("");

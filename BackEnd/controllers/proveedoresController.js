@@ -86,46 +86,20 @@ exports.eliminarProveedor = async (req, res) => {
     const id_usuario = req.query.id_usuario;
 
     try {
-        const sqlCheck = `
-            SELECT 
-                (SELECT COUNT(*) FROM tableros WHERE id_proveedor = ?) AS totalTableros,
-                (SELECT COUNT(*) FROM accesorios WHERE id_proveedor = ?) AS totalAccesorios
-        `;
-        db.query(sqlCheck, [id, id], async (errCheck, resultsCheck) => {
-            if (errCheck) {
-                console.error(errCheck);
-                return res.status(500).json({ mensaje: 'Error al verificar relaciones del proveedor' });
-            }
-            const totalTableros = resultsCheck[0].totalTableros;
-            const totalAccesorios = resultsCheck[0].totalAccesorios;
+        const proveedor = await Proveedor.findByPk(id);
+        if (!proveedor) {
+            return res.status(404).json({ mensaje: 'Proveedor no encontrado' });
+        }
 
-            const proveedor = await Proveedor.findByPk(id);
-            if (!proveedor) {
-                return res.status(404).json({ mensaje: 'Proveedor no encontrado' });
-            }
+        const nombreProv = proveedor.nombre;
+        await proveedor.update({ estado: false });
 
-            const nombreProv = proveedor.nombre;
-
-            if (totalTableros > 0 || totalAccesorios > 0) {
-                let detalles = [];
-                if (totalTableros > 0) detalles.push(`${totalTableros} tablero(s)`);
-                if (totalAccesorios > 0) detalles.push(`${totalAccesorios} accesorio(s)`);
-
-                await proveedor.update({ estado: false });
-                if (id_usuario) {
-                    registrarAuditoria(id_usuario, `Desactivó al proveedor: ${nombreProv} (eliminación lógica por dependencias)`);
-                }
-                return res.json({ mensaje: `El proveedor está asociado a ${detalles.join(' y ')}, por lo que fue desactivado (eliminación lógica) para conservar la integridad.` });
-            }
-
-            await proveedor.destroy();
-            if (id_usuario) {
-                registrarAuditoria(id_usuario, `Eliminó al proveedor: ${nombreProv}`);
-            }
-            res.json({ mensaje: 'Proveedor eliminado correctamente' });
-        });
+        if (id_usuario) {
+            registrarAuditoria(id_usuario, `Desactivó al proveedor: ${nombreProv} (eliminación lógica)`);
+        }
+        res.json({ mensaje: 'Proveedor desactivado (eliminación lógica) correctamente.' });
     } catch (error) {
         console.error(error);
-        res.status(500).json(error);
+        res.status(500).json({ mensaje: 'Error al desactivar proveedor' });
     }
 };

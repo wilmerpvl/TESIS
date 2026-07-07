@@ -26,7 +26,8 @@ function Tableros() {
     precio_tablero: "",
     costo_corte: "",
     id_proveedor: "",
-    estado: 1
+    estado: 1,
+    imagen: null
   });
   useEffect(() => {
     cargarDatos();
@@ -60,10 +61,14 @@ function Tableros() {
       precio_tablero: "",
       costo_corte: "",
       id_proveedor: "",
-      estado: 1
+      estado: 1,
+      imagen: null
     });
     setEditando(null);
     setErrores({});
+    // Reset file input value
+    const fileInput = document.querySelector('input[type="file"][name="imagen"]');
+    if (fileInput) fileInput.value = "";
   };
   const handleChange = (e) => {
     setForm({
@@ -76,6 +81,27 @@ function Tableros() {
         ...errores,
         [e.target.name]: ""
       });
+    }
+  };
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setForm({
+        ...form,
+        imagen: e.target.files[0]
+      });
+    }
+  };
+  const handleKeyPressDecimals = (e) => {
+    if (!/[0-9.]/.test(e.key)) {
+      e.preventDefault();
+    }
+    if (e.key === "." && e.target.value.includes(".")) {
+      e.preventDefault();
+    }
+  };
+  const handleKeyPressOnlyLetters = (e) => {
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]$/.test(e.key)) {
+      e.preventDefault();
     }
   };
   // Validaciones del Formulario
@@ -142,6 +168,38 @@ function Tableros() {
       console.error(error);
       setAlerta({
         mensaje: error.response?.data?.mensaje || "Error al procesar la solicitud.",
+        tipo: "error"
+      });
+    }
+  };
+  const activarTableroDirecto = async (tablero) => {
+    const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
+    const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
+    const datosEnviar = {
+      nombre: tablero.nombre,
+      tipo: tablero.tipo,
+      color: tablero.color || "",
+      textura: tablero.textura || "",
+      ancho: tablero.ancho,
+      alto: tablero.alto,
+      espesor: tablero.espesor,
+      precio_tablero: tablero.precio_tablero || tablero.precio_tablon || "",
+      costo_corte: tablero.costo_corte,
+      id_proveedor: tablero.id_proveedor || "",
+      id_usuario,
+      estado: 1
+    };
+    try {
+      await actualizarTablero(tablero.id_tablero, datosEnviar);
+      setAlerta({
+        mensaje: "Tablero activado correctamente.",
+        tipo: "success"
+      });
+      cargarDatos();
+    } catch (error) {
+      console.error(error);
+      setAlerta({
+        mensaje: "Error al activar el tablero.",
         tipo: "error"
       });
     }
@@ -216,6 +274,7 @@ function Tableros() {
                 placeholder="Nombre"
                 value={form.nombre}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressOnlyLetters}
                 style={errores.nombre ? { borderColor: "#ef4444" } : {}}
               />
               {errores.nombre && (
@@ -248,6 +307,7 @@ function Tableros() {
                 placeholder="Color"
                 value={form.color}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressOnlyLetters}
               />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -256,6 +316,7 @@ function Tableros() {
                 placeholder="Textura"
                 value={form.textura}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressOnlyLetters}
               />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -266,6 +327,7 @@ function Tableros() {
                 placeholder="Ancho (m/cm)"
                 value={form.ancho}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressDecimals}
                 style={errores.ancho ? { borderColor: "#ef4444" } : {}}
               />
               {errores.ancho && (
@@ -282,6 +344,7 @@ function Tableros() {
                 placeholder="Alto (m/cm)"
                 value={form.alto}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressDecimals}
                 style={errores.alto ? { borderColor: "#ef4444" } : {}}
               />
               {errores.alto && (
@@ -298,6 +361,7 @@ function Tableros() {
                 placeholder="Espesor (mm)"
                 value={form.espesor}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressDecimals}
                 style={errores.espesor ? { borderColor: "#ef4444" } : {}}
               />
               {errores.espesor && (
@@ -314,6 +378,7 @@ function Tableros() {
                 placeholder="Precio ($)"
                 value={form.precio_tablero}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressDecimals}
                 style={errores.precio_tablero ? { borderColor: "#ef4444" } : {}}
               />
               {errores.precio_tablero && (
@@ -330,6 +395,7 @@ function Tableros() {
                 placeholder="Costo corte ($)"
                 value={form.costo_corte}
                 onChange={handleChange}
+                onKeyPress={handleKeyPressDecimals}
                 style={errores.costo_corte ? { borderColor: "#ef4444" } : {}}
               />
               {errores.costo_corte && (
@@ -379,6 +445,38 @@ function Tableros() {
                 <option value={0}>Inactivo</option>
               </select>
             </div>
+            {/* Imagen del Tablero */}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <input
+                type="file"
+                name="imagen"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{
+                  padding: "10px",
+                  border: "1px solid #dcdfe4",
+                  borderRadius: "10px",
+                  fontSize: "14px"
+                }}
+              />
+            </div>
+            {/* Previa de imagen */}
+            {form.imagen && (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", gridColumn: "span 2" }}>
+                <span style={{ fontSize: "12px", fontWeight: "600", color: "#059669" }}>✓ Imagen seleccionada: {form.imagen.name}</span>
+                <button type="button" className="btn-light" style={{ padding: "4px 8px", fontSize: "11px", height: "auto" }} onClick={() => setForm({ ...form, imagen: null })}>Quitar</button>
+              </div>
+            )}
+            {editando && tableros.find(t => t.id_tablero === editando)?.imagen && !form.imagen && (
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", gridColumn: "span 2" }}>
+                <span style={{ fontSize: "12px", fontWeight: "600", color: "#374151" }}>Imagen actual:</span>
+                <img
+                  src={`${api.defaults.baseURL.replace("/api", "")}/uploads/${tableros.find(t => t.id_tablero === editando).imagen}`}
+                  alt="Actual"
+                  style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px" }}
+                />
+              </div>
+            )}
           </div>
           <div className="crud-actions">
             <button className="btn-green" onClick={guardar}>
@@ -406,6 +504,7 @@ function Tableros() {
           <thead>
             <tr>
               <th>#</th>
+              <th>Imagen</th>
               <th>Nombre</th>
               <th>Tipo</th>
               <th>Color</th>
@@ -422,6 +521,17 @@ function Tableros() {
             {filtrados.map((t, i) => (
               <tr key={t.id_tablero}>
                 <td>{i + 1}</td>
+                <td>
+                  {t.imagen ? (
+                    <img
+                      src={`${api.defaults.baseURL.replace("/api", "")}/uploads/${t.imagen}`}
+                      alt={t.nombre}
+                      style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px" }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: "20px" }}>🪵</span>
+                  )}
+                </td>
                 <td>{t.nombre}</td>
                 <td>{t.tipo}</td>
                 <td>{t.color || "-"}</td>
@@ -442,14 +552,32 @@ function Tableros() {
                     {t.estado ? "Activo" : "Inactivo"}
                   </span>
                 </td>
-                <td className="actions">
-                  <button className="btn-edit" onClick={() => editar(t)}>
-                    ✏️
-                  </button>
-                  <button className="btn-delete" onClick={() => iniciarEliminacion(t)}>
-                    🗑️
-                  </button>
-                </td>
+                 <td className="actions">
+                   <button className="btn-edit" onClick={() => editar(t)}>
+                     ✏️
+                   </button>
+                   {t.estado ? (
+                     <button className="btn-delete" onClick={() => iniciarEliminacion(t)} title="Inactivar">
+                       🗑️
+                     </button>
+                   ) : (
+                     <button
+                       className="btn-green"
+                       onClick={() => activarTableroDirecto(t)}
+                       title="Activar"
+                       style={{
+                         padding: "6px 10px",
+                         fontSize: "13px",
+                         fontWeight: "bold",
+                         borderRadius: "6px",
+                         display: "inline-flex",
+                         alignItems: "center"
+                       }}
+                     >
+                       ✔️
+                     </button>
+                   )}
+                 </td>
               </tr>
             ))}
           </tbody>
