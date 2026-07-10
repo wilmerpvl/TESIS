@@ -1,9 +1,11 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
 
 function Sidebar() {
     const navigate = useNavigate();
     const { user, logout: logoutUser } = useAuth();
+    const [isOpen, setIsOpen] = useState(false);
 
     const logout = () => {
         logoutUser();
@@ -27,9 +29,31 @@ function Sidebar() {
     };
 
     return (
-        <div className="sidebar">
-            <h2>🪑 Muebles</h2>
-            <div className="menu">
+        <>
+            <button 
+                className="sidebar-toggle" 
+                onClick={() => setIsOpen(!isOpen)}
+                style={{
+                    position: "fixed",
+                    top: "15px",
+                    left: "15px",
+                    zIndex: 1000,
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    background: "#1F3D2B",
+                    color: "white",
+                    fontSize: "20px",
+                    display: "none",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                    border: "none",
+                    cursor: "pointer"
+                }}
+            >
+                {isOpen ? "✕" : "☰"}
+            </button>
+            <div className={`sidebar ${isOpen ? "open" : ""}`} onClick={() => setIsOpen(false)}>
+                <h2>🪑 Muebles</h2>
+                <div className="menu">
                 {mostrarLink("inicio") && (
                     <NavLink to="/">
                         🏠 Inicio
@@ -110,6 +134,7 @@ function Sidebar() {
                 </button>
             </div>
         </div>
+        </>
     );
 }
 

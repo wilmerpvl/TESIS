@@ -43,3 +43,23 @@
     padding:20px;
     border-radius:10px;
 }
+
+@media (max-width: 768px) {
+    .sidebar-toggle {
+        display: block !important;
+    }
+    .sidebar {
+        left: -260px;
+        transition: left 0.3s ease;
+        z-index: 999;
+        width: 250px;
+    }
+    .sidebar.open {
+        left: 0;
+    }
+    .content {
+        margin-left: 0 !important;
+        padding: 15px !important;
+        padding-top: 70px !important;
+    }
+}
