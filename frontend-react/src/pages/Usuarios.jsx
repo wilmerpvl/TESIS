@@ -32,9 +32,13 @@ export default function Usuarios() {
     }
   };
   const handleChange = (e) => {
+    let value = e.target.value;
+    if (e.target.name === "nombre") {
+      value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+    }
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
     // Limpiar el error del campo
     if (errores[e.target.name]) {

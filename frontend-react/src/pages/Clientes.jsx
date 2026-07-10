@@ -33,7 +33,9 @@ export default function Clientes() {
     }
     function handleChange(e) {
         let value = e.target.value;
-        if (e.target.name === "identificacion") {
+        if (e.target.name === "nombre") {
+            value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+        } else if (e.target.name === "identificacion") {
             value = value.replace(/\D/g, "").slice(0, 13);
         } else if (e.target.name === "telefono") {
             value = value.replace(/\D/g, "").slice(0, 10);

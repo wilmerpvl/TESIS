@@ -60,9 +60,13 @@ function Accesorios() {
     setErrores({});
   };
   const handleChange = (e) => {
+    let value = e.target.value;
+    if (["nombre", "color"].includes(e.target.name)) {
+      value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+    }
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
     // Limpiar error al escribir
     if (errores[e.target.name]) {

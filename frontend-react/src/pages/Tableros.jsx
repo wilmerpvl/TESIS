@@ -71,9 +71,13 @@ function Tableros() {
     if (fileInput) fileInput.value = "";
   };
   const handleChange = (e) => {
+    let value = e.target.value;
+    if (["nombre", "color", "textura"].includes(e.target.name)) {
+      value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+    }
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
     // Limpiar el error del campo correspondiente
     if (errores[e.target.name]) {

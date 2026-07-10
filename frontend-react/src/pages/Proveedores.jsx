@@ -219,7 +219,8 @@ export default function Proveedores() {
                 placeholder="🏢 Nombre proveedor"
                 value={formData.nombre}
                 onChange={(e) => {
-                  setFormData({ ...formData, nombre: e.target.value });
+                  const val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+                  setFormData({ ...formData, nombre: val });
                   if (errores.nombre) setErrores({ ...errores, nombre: "" });
                 }}
                 onKeyPress={handleKeyPressOnlyLetters}
