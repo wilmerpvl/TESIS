@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+const API_URL = window.location.hostname === "localhost" ? "http://localhost:3000/api" : "/api";
+
 export default function Reportes() {
 
 
@@ -67,11 +69,11 @@ export default function Reportes() {
             const headers = obtenerTokenHeaders();
             // Ejecución en paralelo de todas las llamadas de reportes (Promise.all)
             const [resumenRes, materialesRes, trabajosRes, cotizacionesRes, accesoriosRes] = await Promise.all([
-                fetch("http://localhost:3000/api/reportes/resumen", { headers }),
-                fetch("http://localhost:3000/api/reportes/materiales", { headers }),
-                fetch("http://localhost:3000/api/reportes/trabajos", { headers }),
-                fetch("http://localhost:3000/api/reportes/cotizaciones", { headers }),
-                fetch("http://localhost:3000/api/reportes/accesorios", { headers })
+                fetch(`${API_URL}/reportes/resumen`, { headers }),
+                fetch(`${API_URL}/reportes/materiales`, { headers }),
+                fetch(`${API_URL}/reportes/trabajos`, { headers }),
+                fetch(`${API_URL}/reportes/cotizaciones`, { headers }),
+                fetch(`${API_URL}/reportes/accesorios`, { headers })
             ]);
 
             const [resumenData, materialesData, trabajosData, cotizacionesData, accesoriosData] = await Promise.all([
@@ -96,7 +98,7 @@ export default function Reportes() {
     const descargarCotizacionPDF = async (c) => {
         try {
             const headers = obtenerTokenHeaders();
-            const res = await fetch(`http://localhost:3000/api/cotizacion-detalle/${c.id_cotizacion}`, { headers });
+            const res = await fetch(`${API_URL}/cotizacion-detalle/${c.id_cotizacion}`, { headers });
             const data = await res.json();
             
             // Generar el diagrama de distribución de cortes en un canvas oculto

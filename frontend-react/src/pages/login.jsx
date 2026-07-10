@@ -18,8 +18,9 @@ function Login() {
 
         try {
 
+            const loginUrl = window.location.hostname === "localhost" ? "http://localhost:3000/api/login" : "/api/login";
             const res = await fetch(
-                "http://localhost:3000/api/login",
+                loginUrl,
                 {
                     method: "POST",
                     headers: {

@@ -13,6 +13,8 @@ import {
 }
   from "../services/cotizacionService";
 
+const mediaHost = window.location.hostname === "localhost" ? "http://localhost:3000" : "";
+
 const obtenerFechaActualLocal = () => {
   const d = new Date();
   const year = d.getFullYear();
@@ -641,9 +643,9 @@ export default function Progreso() {
                     </div>
                     {a.url_imagen && (
                       <div style={{ flexShrink: 0 }}>
-                        <a href={`http://localhost:3000${a.url_imagen}`} target="_blank" rel="noopener noreferrer">
+                        <a href={`${mediaHost}${a.url_imagen}`} target="_blank" rel="noopener noreferrer">
                           <img
-                            src={`http://localhost:3000${a.url_imagen}`}
+                            src={`${mediaHost}${a.url_imagen}`}
                             alt="Evidencia fotográfica"
                             style={{
                               width: "110px",
