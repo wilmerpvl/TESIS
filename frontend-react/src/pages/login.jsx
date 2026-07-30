@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
 
 import "../css/style.css";
 import "../css/login.css";
@@ -18,44 +19,26 @@ function Login() {
 
         try {
 
-            const loginUrl = window.location.hostname === "localhost" ? "http://localhost:3000/api/login" : "/api/login";
-            const res = await fetch(
-                loginUrl,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        email,
-                        password
-                    })
-                }
-            );
+            const res = await api.post("/login", {
+                email,
+                password
+            });
 
-            const data = await res.json();
+            const data = res.data;
 
-            if (res.ok) {
+            const userData = {
+                ...data.usuario,
+                token: data.token
+            };
 
-                const userData = {
-                    ...data.usuario,
-                    token: data.token
-                };
+            loginUser(userData);
 
-                loginUser(userData);
-
-                navigate("/");
-
-            } else {
-
-                setError(data.mensaje);
-
-            }
+            navigate("/");
 
         } catch (err) {
 
             setError(
-                "Error al conectar con el servidor"
+                err.response?.data?.mensaje || "Error al conectar con el servidor"
             );
 
         }

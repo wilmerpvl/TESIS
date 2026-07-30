@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
-const API_URL = window.location.hostname === "localhost" ? "http://localhost:3000/api" : "/api";
+import api from "../services/api";
 
 export default function Reportes() {
 
@@ -48,47 +47,22 @@ export default function Reportes() {
 
     }, []);
 
-    const obtenerTokenHeaders = () => {
-        const usuarioStr = localStorage.getItem("usuario");
-        let token = "";
-        if (usuarioStr) {
-            try {
-                const usuario = JSON.parse(usuarioStr);
-                token = usuario?.token;
-            } catch (e) {}
-        }
-        const headers = {};
-        if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-        }
-        return headers;
-    };
-
     const cargarDatos = async () => {
         try {
-            const headers = obtenerTokenHeaders();
             // Ejecución en paralelo de todas las llamadas de reportes (Promise.all)
             const [resumenRes, materialesRes, trabajosRes, cotizacionesRes, accesoriosRes] = await Promise.all([
-                fetch(`${API_URL}/reportes/resumen`, { headers }),
-                fetch(`${API_URL}/reportes/materiales`, { headers }),
-                fetch(`${API_URL}/reportes/trabajos`, { headers }),
-                fetch(`${API_URL}/reportes/cotizaciones`, { headers }),
-                fetch(`${API_URL}/reportes/accesorios`, { headers })
+                api.get("/reportes/resumen"),
+                api.get("/reportes/materiales"),
+                api.get("/reportes/trabajos"),
+                api.get("/reportes/cotizaciones"),
+                api.get("/reportes/accesorios")
             ]);
 
-            const [resumenData, materialesData, trabajosData, cotizacionesData, accesoriosData] = await Promise.all([
-                resumenRes.json(),
-                materialesRes.json(),
-                trabajosRes.json(),
-                cotizacionesRes.json(),
-                accesoriosRes.json()
-            ]);
-
-            setResumen(resumenData);
-            setMateriales(materialesData);
-            setTrabajos(trabajosData);
-            setCotizaciones(cotizacionesData);
-            setAccesorios(accesoriosData);
+            setResumen(resumenRes.data);
+            setMateriales(materialesRes.data);
+            setTrabajos(trabajosRes.data);
+            setCotizaciones(cotizacionesRes.data);
+            setAccesorios(accesoriosRes.data);
         }
         catch (error) {
             console.error("Error al cargar los reportes:", error);
@@ -97,9 +71,8 @@ export default function Reportes() {
 
     const descargarCotizacionPDF = async (c) => {
         try {
-            const headers = obtenerTokenHeaders();
-            const res = await fetch(`${API_URL}/cotizacion-detalle/${c.id_cotizacion}`, { headers });
-            const data = await res.json();
+            const res = await api.get(`/cotizacion-detalle/${c.id_cotizacion}`);
+            const data = res.data;
             
             // Generar el diagrama de distribución de cortes en un canvas oculto
             let base64Image = null;

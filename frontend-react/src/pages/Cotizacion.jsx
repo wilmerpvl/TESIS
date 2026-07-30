@@ -58,10 +58,10 @@ export default function Cotizacion() {
             const tiposData = await obtenerTiposMueble();
             const tablerosData = await obtenerTableros();
             const accesoriosData = await obtenerAccesorios();
-            setClientes(clientesData);
-            setTipos(tiposData);
-            setTableros(tablerosData);
-            setAccesoriosDisponibles(accesoriosData);
+            setClientes(Array.isArray(clientesData) ? clientesData : []);
+            setTipos(Array.isArray(tiposData) ? tiposData : []);
+            setTableros(Array.isArray(tablerosData) ? tablerosData : []);
+            setAccesoriosDisponibles(Array.isArray(accesoriosData) ? accesoriosData : []);
         } catch (error) {
             console.error(error);
         }

@@ -267,4 +267,12 @@
 
 .card select:hover {
     border-color: #94a3b8;
+}
+
+/* Lienzo Canvas Responsivo */
+canvas {
+    max-width: 100%;
+    height: auto !important;
+    display: block;
+    margin: 0 auto;
 }

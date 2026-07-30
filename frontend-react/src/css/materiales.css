@@ -11,24 +11,4 @@
     font-weight:bold;
     color:#166534;
 }
-
-.form-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:15px;
-}
-
-.form-grid input,
-.form-grid select{
-    padding:12px;
-    border:1px solid #dcdfe4;
-    border-radius:10px;
-    outline:none;
-    transition:.3s;
-}
-
-.form-grid input:focus,
-.form-grid select:focus{
-    border-color:#1F3D2B;
-    box-shadow:0 0 0 3px rgba(31,61,43,.1);
-}
+
