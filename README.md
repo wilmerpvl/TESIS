@@ -111,11 +111,17 @@ El proyecto se divide en dos módulos independientes:
 
 ---
 
-## 🔒 Roles de Usuario por Defecto
-El sistema cuenta con tres roles diferenciados para el control de accesos:
-* **Administrador (ADMIN):** Acceso a todas las funciones, incluyendo bitácora de auditoría y alta/baja de usuarios.
-* **Dueño (DUENO):** Control total de cotizaciones, catálogos (clientes, proveedores, tableros, accesorios) y reportes de facturación.
-* **Empleado (EMPLEADO):** Acceso restringido para cotizar y actualizar el progreso físico de los trabajos con carga de fotos desde el taller.
+## 🔒 Control de Accesos y Roles por Defecto
+
+El sistema **no cuenta con registro público de usuarios** por motivos de seguridad comercial. La creación y gestión de nuevas cuentas debe ser realizada obligatoriamente por un **Administrador (ADMIN)** desde el panel administrativo (menú *Usuarios*).
+
+Al inicializar la base de datos mediante el script `sistema_muebles.sql`, se insertan automáticamente las siguientes credenciales por defecto para cada rol:
+
+| Rol | Correo Electrónico | Contraseña por Defecto | Accesos Permitidos |
+| :--- | :--- | :--- | :--- |
+| **Administrador (ADMIN)** | `admin@sistema.com` | `123456` | Acceso total, incluyendo bitácora de auditoría y alta/baja de usuarios. |
+| **Dueño (DUENO)** | `dueno@sistema.com` | `123456` | Gestión de cotizaciones, reportes financieros y catálogos de materiales. |
+| **Empleado (EMPLEADO)** | `empleado@sistema.com` | `123456` | Generación de cotizaciones y registro de avances de taller con evidencias fotográficas. |
 
 ---
 
