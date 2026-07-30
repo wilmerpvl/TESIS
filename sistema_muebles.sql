@@ -41,6 +41,7 @@ CREATE TABLE tableros (
     espesor DECIMAL(10,2),
     precio_tablero DECIMAL(10,2),
     costo_corte DECIMAL(10,2),
+    imagen VARCHAR(255) NULL,
     id_proveedor INT,
     estado BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (id_proveedor)
