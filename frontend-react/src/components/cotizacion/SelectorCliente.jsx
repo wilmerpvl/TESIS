@@ -43,9 +43,9 @@ function SelectorCliente({
     };
 
     return (
-        <div className="card" ref={containerRef} style={{ position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h3 style={{ margin: 0 }}>Cliente</h3>
+        <div ref={containerRef} style={{ marginBottom: "25px", paddingBottom: "20px", borderBottom: "1px solid #e2e8f0", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                <h3 style={{ margin: 0, fontSize: "16px", color: "#1e293b", fontWeight: "700" }}>2. Cliente</h3>
                 {clienteSeleccionado && (
                     <button
                         type="button"

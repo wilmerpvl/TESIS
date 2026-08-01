@@ -297,73 +297,82 @@ export default function Progreso() {
           Finalizados ({trabajosCompletados.length})
         </button>
       </div>
-      {/* Buscador */}
-      <div className="card search-card" style={{ marginBottom: "20px" }}>
-        <h3>Buscar Trabajo ({tabActiva === "proceso" ? "En Proceso" : "Finalizado"})</h3>
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Buscar por ID, cliente, mueble..."
-            value={buscar}
-            onChange={(e) => setBuscar(e.target.value)}
-          />
-        </div>
-      </div>
       {/* Vista de Trabajos en Proceso */}
       {tabActiva === "proceso" && (
-        <div className="card">
-          <div className="table-card">
-            <table>
-              <thead>
+        <div className="table-card">
+          <div className="table-header">
+            <h3>Trabajos en Proceso</h3>
+            <div className="table-search-box">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Buscar por ID, cliente, mueble..."
+                value={buscar}
+                onChange={(e) => setBuscar(e.target.value)}
+              />
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Trabajo</th>
+                <th>Cliente</th>
+                <th>Mueble</th>
+                <th>Fecha Inicio</th>
+                <th>Avance</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trabajosFiltrados.length === 0 ? (
                 <tr>
-                  <th>Trabajo</th>
-                  <th>Cliente</th>
-                  <th>Mueble</th>
-                  <th>Fecha Inicio</th>
-                  <th>Avance</th>
-                  <th>Estado</th>
-                  <th>Acción</th>
+                  <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+                    No se encontraron trabajos en proceso con el criterio de búsqueda.
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {trabajosFiltrados.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#666" }}>
-                      No se encontraron trabajos en proceso con el criterio de búsqueda.
+              ) : (
+                trabajosFiltrados.map(t => (
+                  <tr key={t.id_trabajo}>
+                    <td>#{t.id_trabajo}</td>
+                    <td>{t.cliente}</td>
+                    <td>{t.tipo_mueble}</td>
+                    <td>{t.fecha_inicio ? new Date(t.fecha_inicio).toLocaleDateString() : "-"}</td>
+                    <td>{t.avance}%</td>
+                    <td>
+                      <span className="estado-proceso">En proceso</span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn-green"
+                        onClick={() => verTrabajo(t.id_trabajo)}
+                      >
+                        Ver
+                      </button>
                     </td>
                   </tr>
-                ) : (
-                  trabajosFiltrados.map(t => (
-                    <tr key={t.id_trabajo}>
-                      <td>#{t.id_trabajo}</td>
-                      <td>{t.cliente}</td>
-                      <td>{t.tipo_mueble}</td>
-                      <td>{t.fecha_inicio ? new Date(t.fecha_inicio).toLocaleDateString() : "-"}</td>
-                      <td>{t.avance}%</td>
-                      <td>
-                        <span className="estado-proceso">En proceso</span>
-                      </td>
-                      <td>
-                        <button
-                          className="btn-green"
-                          onClick={() => verTrabajo(t.id_trabajo)}
-                        >
-                          Ver
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       )}
       {/* Vista de Trabajos Finalizados */}
       {tabActiva === "completados" && (
-        <div className="card">
-          <div className="table-card">
-            <table>
+        <div className="table-card">
+          <div className="table-header">
+            <h3>Trabajos Finalizados</h3>
+            <div className="table-search-box">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Buscar por ID, cliente, mueble..."
+                value={buscar}
+                onChange={(e) => setBuscar(e.target.value)}
+              />
+            </div>
+          </div>
+          <table>
               <thead>
                 <tr>
                   <th>Trabajo</th>
@@ -408,7 +417,6 @@ export default function Progreso() {
                 )}
               </tbody>
             </table>
-          </div>
         </div>
       )}
       {/* Sección Detalle del Trabajo Seleccionado */}

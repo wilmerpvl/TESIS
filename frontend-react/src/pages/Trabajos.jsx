@@ -213,21 +213,20 @@ export default function Trabajos() {
         </div>
       )}
       {cotizaciones.length > 0 && (
-        <>
-          <div className="card search-card" style={{ marginBottom: "20px" }}>
-            <h3>Buscar Cotización</h3>
-            <div className="search-box">
+        <div className="table-card">
+          <div className="table-header">
+            <h3>Lista de Cotizaciones</h3>
+            <div className="table-search-box">
+              <span className="search-icon">🔍</span>
               <input
                 type="text"
-                placeholder="Buscar por ID, cliente, mueble, estado..."
+                placeholder="Buscar cotización..."
                 value={buscar}
                 onChange={(e) => setBuscar(e.target.value)}
               />
             </div>
           </div>
-          <div className="card">
-            <div className="table-card">
-              <table>
+          <table>
                 <thead>
                   <tr>
                     <th>Cotización</th>
@@ -307,8 +306,6 @@ export default function Trabajos() {
                 </tbody>
               </table>
             </div>
-          </div>
-        </>
       )}
 
       {/* Modal de Detalle de Cotización */}

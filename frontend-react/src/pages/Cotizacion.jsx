@@ -212,105 +212,110 @@ export default function Cotizacion() {
                     </div>
                 </div>
             </div>
-            <TipoMueble
-                tipos={tipos}
-                value={tipoSeleccionado}
-                onChange={setTipoSeleccionado}
-                setModulos={setModulos}
-            />
-            <SelectorCliente
-                clientes={clientes}
-                clienteSeleccionado={clienteSeleccionado}
-                setClienteSeleccionado={setClienteSeleccionado}
-            />
-            <div className="card">
-                <div className="partes-header">
-                    <div>
-                        <h3>Tablero General</h3>
-                        <p>
-                            {tableroSeleccionado
-                                ? tableroSeleccionado.nombre
-                                : "Ningún tablero seleccionado"}
-                        </p>
+            {/* FORMULARIO UNIFICADO DE COTIZACIÓN */}
+            <div className="card cotizacion-master-card" style={{ padding: "30px", marginBottom: "30px" }}>
+                <TipoMueble
+                    tipos={tipos}
+                    tipoSeleccionado={tipoSeleccionado}
+                    onChange={setTipoSeleccionado}
+                    setModulos={setModulos}
+                />
+                <SelectorCliente
+                    clientes={clientes}
+                    clienteSeleccionado={clienteSeleccionado}
+                    setClienteSeleccionado={setClienteSeleccionado}
+                />
+                <div style={{ marginBottom: "25px", paddingBottom: "20px", borderBottom: "1px solid #e2e8f0" }}>
+                    <div className="partes-header" style={{ marginBottom: "8px" }}>
+                        <div>
+                            <h3 style={{ margin: 0, fontSize: "16px", color: "#1e293b", fontWeight: "700" }}>3. Tablero General</h3>
+                            <p style={{ margin: "4px 0 0 0", color: "#64748b", fontSize: "14px" }}>
+                                {tableroSeleccionado
+                                    ? `✓ Tablero seleccionado: ${tableroSeleccionado.nombre}`
+                                    : "Ningún tablero seleccionado"}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn-green"
+                            onClick={() => setMostrarModal(true)}
+                        >
+                            Buscar Tablero
+                        </button>
                     </div>
+                </div>
+                <ModalTableros
+                    visible={mostrarModal}
+                    onCerrar={() => setMostrarModal(false)}
+                    tableros={tableros}
+                    onSeleccionar={(tablero) => {
+                        setTableroSeleccionado(tablero);
+                        setMostrarModal(false);
+                    }}
+                />
+                <Modulos
+                    tipoSeleccionado={tipoSeleccionado}
+                    modulos={modulos}
+                    setModulos={setModulos}
+                />
+                <Accesorios
+                    accesoriosDisponibles={accesoriosDisponibles}
+                    accesorios={accesorios}
+                    setAccesorios={setAccesorios}
+                />
+                <PreviewCanvas canvasRef={canvasRef} />
+                <div style={{ marginBottom: "25px", paddingBottom: "20px", borderBottom: "1px solid #e2e8f0" }}>
+                    <h3 style={{ fontSize: "16px", color: "#1e293b", fontWeight: "700", marginBottom: "12px" }}>7. Costos Adicionales</h3>
+                    <div className="form-grid" style={{ gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                        <div>
+                            <label style={{ fontWeight: "600", fontSize: "14px", color: "#475569", display: "block", marginBottom: "8px" }}>Mano de obra ($)</label>
+                            <input
+                                type="number"
+                                value={manoObra}
+                                onChange={(e) => setManoObra(e.target.value)}
+                                placeholder="0.00"
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    border: "1px solid #cbd5e1", 
+                                    borderRadius: "8px", 
+                                    fontSize: "15px",
+                                    outline: "none",
+                                    transition: "all 0.2s"
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ fontWeight: "600", fontSize: "14px", color: "#475569", display: "block", marginBottom: "8px" }}>Transporte ($)</label>
+                            <input
+                                type="number"
+                                value={transporte}
+                                onChange={(e) => setTransporte(e.target.value)}
+                                placeholder="0.00"
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    border: "1px solid #cbd5e1", 
+                                    borderRadius: "8px", 
+                                    fontSize: "15px",
+                                    outline: "none",
+                                    transition: "all 0.2s"
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+                
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
                     <button
+                        type="button"
                         className="btn-green"
-                        onClick={() => setMostrarModal(true)}
+                        onClick={calcularCotizacion}
+                        style={{ padding: "14px 35px", fontSize: "16px", borderRadius: "8px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}
                     >
-                        Buscar Tablero
+                        🧮 Calcular Cotización
                     </button>
                 </div>
-            </div>
-            <ModalTableros
-                visible={mostrarModal}
-                onCerrar={() => setMostrarModal(false)}
-                tableros={tableros}
-                onSeleccionar={(tablero) => {
-                    setTableroSeleccionado(tablero);
-                    setMostrarModal(false);
-                }}
-            />
-            <Modulos
-                tipoSeleccionado={tipoSeleccionado}
-                modulos={modulos}
-                setModulos={setModulos}
-            />
-            <Accesorios
-                accesoriosDisponibles={accesoriosDisponibles}
-                accesorios={accesorios}
-                setAccesorios={setAccesorios}
-            />
-            <PreviewCanvas canvasRef={canvasRef} />
-            <div className="card">
-                <h3>Costos Adicionales</h3>
-                <div className="form-grid" style={{ marginTop: "15px", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                    <div>
-                        <label style={{ fontWeight: "600", fontSize: "14px", color: "#475569", display: "block", marginBottom: "8px" }}>Mano de obra ($)</label>
-                        <input
-                            type="number"
-                            value={manoObra}
-                            onChange={(e) => setManoObra(e.target.value)}
-                            placeholder="0.00"
-                            style={{ 
-                                width: "100%", 
-                                padding: "12px 16px", 
-                                border: "1px solid #cbd5e1", 
-                                borderRadius: "8px", 
-                                fontSize: "15px",
-                                outline: "none",
-                                transition: "all 0.2s"
-                            }}
-                        />
-                    </div>
-                    <div>
-                        <label style={{ fontWeight: "600", fontSize: "14px", color: "#475569", display: "block", marginBottom: "8px" }}>Transporte ($)</label>
-                        <input
-                            type="number"
-                            value={transporte}
-                            onChange={(e) => setTransporte(e.target.value)}
-                            placeholder="0.00"
-                            style={{ 
-                                width: "100%", 
-                                padding: "12px 16px", 
-                                border: "1px solid #cbd5e1", 
-                                borderRadius: "8px", 
-                                fontSize: "15px",
-                                outline: "none",
-                                transition: "all 0.2s"
-                            }}
-                        />
-                    </div>
-                </div>
-            </div>
-            
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px", marginBottom: "30px" }}>
-                <button
-                    className="btn-green"
-                    onClick={calcularCotizacion}
-                    style={{ padding: "14px 35px", fontSize: "16px", borderRadius: "8px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                    🧮 Calcular Cotización
-                </button>
             </div>
             <ModalResultadoCotizacion
                 visible={mostrarResultado}

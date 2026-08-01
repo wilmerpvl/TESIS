@@ -4,10 +4,10 @@ function PreviewCanvas({ canvasRef }) {
 
     return (
 
-        <div className="card">
+        <div style={{ marginBottom: "25px", paddingBottom: "20px", borderBottom: "1px solid #e2e8f0" }}>
 
-            <h3>
-                Vista previa de cortes
+            <h3 style={{ fontSize: "16px", color: "#1e293b", fontWeight: "700", marginBottom: "12px" }}>
+                6. Vista Previa de Cortes
             </h3>
 
             <canvas

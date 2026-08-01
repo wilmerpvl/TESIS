@@ -50,12 +50,12 @@ function Accesorios({
 
     return (
 
-        <div className="card">
+        <div style={{ marginBottom: "25px", paddingBottom: "20px", borderBottom: "1px solid #e2e8f0" }}>
 
-            <div className="partes-header">
+            <div className="partes-header" style={{ marginBottom: "12px" }}>
 
-                <h3>
-                    Accesorios Generales
+                <h3 style={{ margin: 0, fontSize: "16px", color: "#1e293b", fontWeight: "700" }}>
+                    5. Accesorios Generales
                 </h3>
 
                 <button
