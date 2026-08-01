@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import ActionMenu from "../components/ActionMenu";
 import "../css/clientes.css";
 export default function Clientes() {
     const [clientes, setClientes] = useState([]);
@@ -342,7 +343,7 @@ export default function Clientes() {
                     </div>
                     <div className="crud-actions">
                         <button className="btn-green" onClick={guardarCliente}>
-                            {editando ? "Actualizar Cliente" : "Registrar Cliente"}
+                            {editando ? "Actualizar Cliente" : "Guardar Cliente"}
                         </button>
                         <button
                             className="btn-light"
@@ -363,21 +364,19 @@ export default function Clientes() {
                         </button>
                     </div>
                 </div>
-                <div className="card search-card">
-                    <h3>Buscar Cliente</h3>
-                    <div className="search-box">
-                        <input
-                            type="text"
-                            placeholder="Buscar..."
-                            value={buscar}
-                            onChange={(e) => setBuscar(e.target.value)}
-                        />
-                    </div>
-                </div>
             </div>
             <div className="table-card">
                 <div className="table-header">
                     <h3>Lista de Clientes</h3>
+                    <div className="table-search-box">
+                        <span className="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Buscar cliente..."
+                            value={buscar}
+                            onChange={(e) => setBuscar(e.target.value)}
+                        />
+                    </div>
                 </div>
                 <table>
                     <thead>
@@ -421,37 +420,12 @@ export default function Clientes() {
                                     </span>
                                 </td>
                                 <td className="actions">
-                                    <button
-                                        className="btn-edit"
-                                        onClick={() => editarCliente(c)}
-                                    >
-                                        ✏️
-                                    </button>
-                                    {c.estado ? (
-                                        <button
-                                            className="btn-delete"
-                                            onClick={() => iniciarEliminacion(c)}
-                                            title="Inactivar"
-                                        >
-                                            🗑️
-                                        </button>
-                                    ) : (
-                                        <button
-                                            className="btn-green"
-                                            onClick={() => activarClienteDirecto(c)}
-                                            title="Activar"
-                                            style={{
-                                                padding: "6px 10px",
-                                                fontSize: "13px",
-                                                fontWeight: "bold",
-                                                borderRadius: "6px",
-                                                display: "inline-flex",
-                                                alignItems: "center"
-                                            }}
-                                        >
-                                            ✔️
-                                        </button>
-                                    )}
+                                    <ActionMenu
+                                        estado={c.estado}
+                                        onEdit={() => editarCliente(c)}
+                                        onDelete={() => iniciarEliminacion(c)}
+                                        onActivate={() => activarClienteDirecto(c)}
+                                    />
                                 </td>
                             </tr>
                         ))}

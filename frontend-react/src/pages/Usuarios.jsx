@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import ActionMenu from "../components/ActionMenu";
+
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [buscar, setBuscar] = useState("");
@@ -330,7 +332,7 @@ export default function Usuarios() {
               </button>
             ) : (
               <button className="btn-green" onClick={guardarUsuario}>
-                Registrar Usuario
+                Guardar Usuario
               </button>
             )}
             <button
@@ -351,21 +353,19 @@ export default function Usuarios() {
             </button>
           </div>
         </div>
-        <div className="card search-card">
-          <h3>Buscar Usuario</h3>
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Buscar..."
-              value={buscar}
-              onChange={(e) => setBuscar(e.target.value)}
-            />
-          </div>
-        </div>
       </div>
       <div className="table-card">
         <div className="table-header">
           <h3>Lista de Usuarios</h3>
+          <div className="table-search-box">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar usuario..."
+              value={buscar}
+              onChange={(e) => setBuscar(e.target.value)}
+            />
+          </div>
         </div>
         <table className="tabla-usuarios">
           <thead>
@@ -414,34 +414,12 @@ export default function Usuarios() {
                     </span>
                   </td>
                   <td className="actions">
-                    <button className="btn-edit" onClick={() => editarUsuario(u)}>
-                      ✏️
-                    </button>
-                    {u.estado ? (
-                      <button
-                        className="btn-delete"
-                        onClick={() => iniciarEliminacion(u)}
-                        title="Inactivar"
-                      >
-                        🗑️
-                      </button>
-                    ) : (
-                      <button
-                        className="btn-green"
-                        onClick={() => activarUsuarioDirecto(u)}
-                        title="Activar"
-                        style={{
-                          padding: "6px 10px",
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          borderRadius: "6px",
-                          display: "inline-flex",
-                          alignItems: "center"
-                        }}
-                      >
-                        ✔️
-                      </button>
-                    )}
+                    <ActionMenu
+                      estado={u.estado}
+                      onEdit={() => editarUsuario(u)}
+                      onDelete={() => iniciarEliminacion(u)}
+                      onActivate={() => activarUsuarioDirecto(u)}
+                    />
                   </td>
                 </tr>
               );

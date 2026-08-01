@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import ActionMenu from "../components/ActionMenu";
 import {
   obtenerTableros,
   crearTablero,
@@ -271,11 +272,17 @@ function Tableros() {
       <div className="crud-top">
         <div className="card form-card">
           <h3>{editando ? "Editar Tablero" : "Nuevo Tablero"}</h3>
+          
+          {/* SECCIÓN 1: INFORMACIÓN GENERAL */}
+          <div className="form-section-title">
+            <span>📌 Información General</span>
+            <span className="form-section-badge">Paso 1</span>
+          </div>
           <div className="form-grid">
             <div style={{ display: "flex", flexDirection: "column" }}>
               <input
                 name="nombre"
-                placeholder="Nombre"
+                placeholder="Nombre del tablero"
                 value={form.nombre}
                 onChange={handleChange}
                 onKeyPress={handleKeyPressOnlyLetters}
@@ -323,6 +330,37 @@ function Tableros() {
                 onKeyPress={handleKeyPressOnlyLetters}
               />
             </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <select
+                name="id_proveedor"
+                value={form.id_proveedor}
+                onChange={handleChange}
+                style={errores.id_proveedor ? { borderColor: "#ef4444" } : {}}
+              >
+                <option value="">Seleccionar proveedor</option>
+                {proveedores
+                  .filter(prov => prov.estado || prov.id_proveedor === Number(form.id_proveedor))
+                  .map((prov) => (
+                    <option key={prov.id_proveedor} value={prov.id_proveedor}>
+                      {prov.nombre} {!prov.estado && "(Inactivo)"}
+                    </option>
+                  ))
+                }
+              </select>
+              {errores.id_proveedor && (
+                <span style={{ color: "#ef4444", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
+                  {errores.id_proveedor}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* SECCIÓN 2: DIMENSIONES Y ESPECIFICACIONES */}
+          <div className="form-section-title">
+            <span>📏 Dimensiones y Especificaciones</span>
+            <span className="form-section-badge">Paso 2</span>
+          </div>
+          <div className="form-grid">
             <div style={{ display: "flex", flexDirection: "column" }}>
               <input
                 name="ancho"
@@ -374,12 +412,20 @@ function Tableros() {
                 </span>
               )}
             </div>
+          </div>
+
+          {/* SECCIÓN 3: PRECIOS Y COSTOS */}
+          <div className="form-section-title">
+            <span>💰 Precios y Costos</span>
+            <span className="form-section-badge">Paso 3</span>
+          </div>
+          <div className="form-grid">
             <div style={{ display: "flex", flexDirection: "column" }}>
               <input
                 name="precio_tablero"
                 type="number"
                 step="any"
-                placeholder="Precio ($)"
+                placeholder="Precio Tablero ($)"
                 value={form.precio_tablero}
                 onChange={handleChange}
                 onKeyPress={handleKeyPressDecimals}
@@ -408,30 +454,14 @@ function Tableros() {
                 </span>
               )}
             </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <select
-                name="id_proveedor"
-                value={form.id_proveedor}
-                onChange={handleChange}
-                style={errores.id_proveedor ? { borderColor: "#ef4444" } : {}}
-              >
-                <option value="">Seleccionar proveedor</option>
-                {proveedores
-                  .filter(prov => prov.estado || prov.id_proveedor === Number(form.id_proveedor))
-                  .map((prov) => (
-                    <option key={prov.id_proveedor} value={prov.id_proveedor}>
-                      {prov.nombre} {!prov.estado && "(Inactivo)"}
-                    </option>
-                  ))
-                }
-              </select>
-              {errores.id_proveedor && (
-                <span style={{ color: "#ef4444", fontSize: "11px", marginTop: "4px", fontWeight: "600" }}>
-                  {errores.id_proveedor}
-                </span>
-              )}
-            </div>
-            {/* Estado */}
+          </div>
+
+          {/* SECCIÓN 4: IMAGEN Y ESTADO */}
+          <div className="form-section-title">
+            <span>🖼️ Imagen y Estado</span>
+            <span className="form-section-badge">Paso 4</span>
+          </div>
+          <div className="form-grid">
             <div style={{ display: "flex", flexDirection: "column" }}>
               <select
                 name="estado"
@@ -449,7 +479,6 @@ function Tableros() {
                 <option value={0}>Inactivo</option>
               </select>
             </div>
-            {/* Imagen del Tablero */}
             <div style={{ display: "flex", flexDirection: "column" }}>
               <input
                 type="file"
@@ -464,7 +493,6 @@ function Tableros() {
                 }}
               />
             </div>
-            {/* Previa de imagen */}
             {form.imagen && (
               <div style={{ display: "flex", alignItems: "center", gap: "10px", gridColumn: "span 2" }}>
                 <span style={{ fontSize: "12px", fontWeight: "600", color: "#059669" }}>✓ Imagen seleccionada: {form.imagen.name}</span>
@@ -482,28 +510,30 @@ function Tableros() {
               </div>
             )}
           </div>
+
           <div className="crud-actions">
             <button className="btn-green" onClick={guardar}>
-              {editando ? "Actualizar" : "Registrar"}
+              {editando ? "Actualizar Tablero" : "Guardar Tablero"}
             </button>
             <button className="btn-light" onClick={limpiarFormulario}>
               Limpiar
             </button>
           </div>
         </div>
-        <div className="card search-card">
-          <h3>Buscar Tablero</h3>
-          <div className="search-box">
+      </div>
+      <div className="table-card">
+        <div className="table-header">
+          <h3>Lista de Tableros</h3>
+          <div className="table-search-box">
+            <span className="search-icon">🔍</span>
             <input
               type="text"
-              placeholder="Buscar..."
+              placeholder="Buscar tablero..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
         </div>
-      </div>
-      <div className="table-card">
         <table>
           <thead>
             <tr>
@@ -556,32 +586,14 @@ function Tableros() {
                     {t.estado ? "Activo" : "Inactivo"}
                   </span>
                 </td>
-                 <td className="actions">
-                   <button className="btn-edit" onClick={() => editar(t)}>
-                     ✏️
-                   </button>
-                   {t.estado ? (
-                     <button className="btn-delete" onClick={() => iniciarEliminacion(t)} title="Inactivar">
-                       🗑️
-                     </button>
-                   ) : (
-                     <button
-                       className="btn-green"
-                       onClick={() => activarTableroDirecto(t)}
-                       title="Activar"
-                       style={{
-                         padding: "6px 10px",
-                         fontSize: "13px",
-                         fontWeight: "bold",
-                         borderRadius: "6px",
-                         display: "inline-flex",
-                         alignItems: "center"
-                       }}
-                     >
-                       ✔️
-                     </button>
-                   )}
-                 </td>
+                <td className="actions">
+                  <ActionMenu
+                    estado={t.estado}
+                    onEdit={() => editar(t)}
+                    onDelete={() => iniciarEliminacion(t)}
+                    onActivate={() => activarTableroDirecto(t)}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

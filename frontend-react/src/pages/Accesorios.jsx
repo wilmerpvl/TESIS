@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import ActionMenu from "../components/ActionMenu";
 import {
   obtenerAccesorios,
   crearAccesorio,
@@ -241,13 +242,19 @@ function Accesorios() {
       <div className="crud-top">
         <div className="card form-card">
           <h3>{editando ? "Editar Accesorio" : "Nuevo Accesorio"}</h3>
+          
+          {/* SECCIÓN 1: DATOS DEL ACCESORIO */}
+          <div className="form-section-title">
+            <span>📌 Datos del Accesorio</span>
+            <span className="form-section-badge">Paso 1</span>
+          </div>
           <div className="form-grid">
             {/* Nombre */}
             <div style={{ display: "flex", flexDirection: "column" }}>
               <input
                 type="text"
                 name="nombre"
-                placeholder="Nombre"
+                placeholder="Nombre del accesorio"
                 value={form.nombre}
                 onChange={handleChange}
                 onKeyPress={handleKeyPressOnlyLetters}
@@ -320,13 +327,21 @@ function Accesorios() {
                 onKeyPress={handleKeyPressOnlyLetters}
               />
             </div>
+          </div>
+
+          {/* SECCIÓN 2: PRECIO Y PROVEEDOR */}
+          <div className="form-section-title">
+            <span>💰 Precio y Proveedor</span>
+            <span className="form-section-badge">Paso 2</span>
+          </div>
+          <div className="form-grid">
             {/* Precio */}
             <div style={{ display: "flex", flexDirection: "column" }}>
               <input
                 type="number"
                 step="0.01"
                 name="precio_unitario"
-                placeholder="Precio"
+                placeholder="Precio ($)"
                 value={form.precio_unitario}
                 onChange={handleChange}
                 onKeyPress={handleKeyPressDecimals}
@@ -381,30 +396,29 @@ function Accesorios() {
               </select>
             </div>
           </div>
+
           <div className="crud-actions">
             <button className="btn-green" onClick={guardar}>
-              {editando ? "Actualizar" : "Registrar"}
+              {editando ? "Actualizar Accesorio" : "Guardar Accesorio"}
             </button>
             <button className="btn-light" onClick={limpiarFormulario}>
               Limpiar
             </button>
           </div>
         </div>
-        <div className="card search-card">
-          <h3>Buscar Accesorios</h3>
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Buscar..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-          </div>
-        </div>
       </div>
       <div className="table-card">
         <div className="table-header">
           <h3>Lista de Accesorios</h3>
+          <div className="table-search-box">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar accesorio..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </div>
         </div>
         <table>
           <thead>
@@ -449,30 +463,12 @@ function Accesorios() {
                   </span>
                 </td>
                 <td className="actions">
-                  <button className="btn-edit" onClick={() => editar(a)}>
-                    ✏️
-                  </button>
-                  {a.estado ? (
-                    <button className="btn-delete" onClick={() => iniciarEliminacion(a)} title="Inactivar">
-                      🗑️
-                    </button>
-                  ) : (
-                    <button
-                      className="btn-green"
-                      onClick={() => activarAccesorioDirecto(a)}
-                      title="Activar"
-                      style={{
-                        padding: "6px 10px",
-                        fontSize: "13px",
-                        fontWeight: "bold",
-                        borderRadius: "6px",
-                        display: "inline-flex",
-                        alignItems: "center"
-                      }}
-                    >
-                      ✔️
-                    </button>
-                  )}
+                  <ActionMenu
+                    estado={a.estado}
+                    onEdit={() => editar(a)}
+                    onDelete={() => iniciarEliminacion(a)}
+                    onActivate={() => activarAccesorioDirecto(a)}
+                  />
                 </td>
               </tr>
             ))}

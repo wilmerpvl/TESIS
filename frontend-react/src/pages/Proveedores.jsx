@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import ActionMenu from "../components/ActionMenu";
 export default function Proveedores() {
   const [proveedores, setProveedores] = useState([]);
   const [buscar, setBuscar] = useState("");
@@ -310,7 +311,7 @@ export default function Proveedores() {
           </div>
           <div className="crud-actions">
             <button className="btn-green" onClick={guardarProveedor}>
-              {editando ? "Actualizar" : "Registrar"}
+              {editando ? "Actualizar Proveedor" : "Guardar Proveedor"}
             </button>
             <button
               className="btn-light"
@@ -330,21 +331,19 @@ export default function Proveedores() {
             </button>
           </div>
         </div>
-        <div className="card search-card">
-          <h3>Buscar Proveedor</h3>
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Buscar..."
-              value={buscar}
-              onChange={(e) => setBuscar(e.target.value)}
-            />
-          </div>
-        </div>
       </div>
       <div className="table-card">
         <div className="table-header">
           <h3>Lista de Proveedores</h3>
+          <div className="table-search-box">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar proveedor..."
+              value={buscar}
+              onChange={(e) => setBuscar(e.target.value)}
+            />
+          </div>
         </div>
         <table id="tablaProveedores">
           <thead>
@@ -384,30 +383,12 @@ export default function Proveedores() {
                   </span>
                 </td>
                 <td className="actions">
-                  <button className="btn-edit" onClick={() => editarProveedor(p)}>
-                    ✏️
-                  </button>
-                  {p.estado ? (
-                    <button className="btn-delete" onClick={() => iniciarEliminacion(p)} title="Inactivar">
-                      🗑️
-                    </button>
-                  ) : (
-                    <button
-                      className="btn-green"
-                      onClick={() => activarProveedorDirecto(p)}
-                      title="Activar"
-                      style={{
-                        padding: "6px 10px",
-                        fontSize: "13px",
-                        fontWeight: "bold",
-                        borderRadius: "6px",
-                        display: "inline-flex",
-                        alignItems: "center"
-                      }}
-                    >
-                      ✔️
-                    </button>
-                  )}
+                  <ActionMenu
+                    estado={p.estado}
+                    onEdit={() => editarProveedor(p)}
+                    onDelete={() => iniciarEliminacion(p)}
+                    onActivate={() => activarProveedorDirecto(p)}
+                  />
                 </td>
               </tr>
             ))}
