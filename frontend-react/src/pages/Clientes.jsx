@@ -328,13 +328,6 @@ export default function Clientes() {
                                 name="estado"
                                 value={form.estado}
                                 onChange={(e) => setForm({ ...form, estado: parseInt(e.target.value) })}
-                                style={{
-                                    padding: "12px",
-                                    border: "1px solid #dcdfe4",
-                                    borderRadius: "10px",
-                                    outline: "none",
-                                    fontSize: "14px"
-                                }}
                             >
                                 <option value={1}>Activo</option>
                                 <option value={0}>Inactivo</option>

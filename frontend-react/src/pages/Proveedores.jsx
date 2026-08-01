@@ -296,13 +296,6 @@ export default function Proveedores() {
                 name="estado"
                 value={formData.estado}
                 onChange={(e) => setFormData({ ...formData, estado: parseInt(e.target.value) })}
-                style={{
-                  padding: "12px",
-                  border: "1px solid #dcdfe4",
-                  borderRadius: "10px",
-                  outline: "none",
-                  fontSize: "14px"
-                }}
               >
                 <option value={1}>Activo</option>
                 <option value={0}>Inactivo</option>
