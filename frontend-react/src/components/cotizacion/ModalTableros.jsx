@@ -168,15 +168,31 @@ function ModalTableros({
                                 </p>
 
                                 <button
-                                    className="btn-green"
+                                    type="button"
                                     onClick={() => {
-
-                                        onSeleccionar(
-                                            tablero
-                                        );
-
+                                        onSeleccionar(tablero);
                                         onCerrar();
-
+                                    }}
+                                    style={{
+                                        marginTop: "12px",
+                                        width: "100%",
+                                        padding: "10px",
+                                        backgroundColor: "#f1f5f9",
+                                        color: "#334155",
+                                        border: "1px solid #cbd5e1",
+                                        borderRadius: "8px",
+                                        fontWeight: "600",
+                                        fontSize: "14px",
+                                        cursor: "pointer",
+                                        transition: "all 0.2s"
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = "#e2e8f0";
+                                        e.currentTarget.style.color = "#0f172a";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = "#f1f5f9";
+                                        e.currentTarget.style.color = "#334155";
                                     }}
                                 >
                                     Seleccionar
