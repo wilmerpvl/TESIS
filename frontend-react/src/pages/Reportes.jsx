@@ -563,10 +563,21 @@ export default function Reportes() {
                 >
                     <h2>📊 Historial de Ingresos Mensuales</h2>
                     <button
-                        className="btn-green"
+                        type="button"
+                        className="btn-light"
                         onClick={descargarPDF}
+                        style={{
+                            backgroundColor: "#f1f5f9",
+                            color: "#334155",
+                            border: "1px solid #cbd5e1",
+                            borderRadius: "8px",
+                            padding: "8px 14px",
+                            fontSize: "13px",
+                            fontWeight: "600",
+                            cursor: "pointer"
+                        }}
                     >
-                        Descargar PDF
+                        📄 Descargar PDF
                     </button>
                 </div>
 
@@ -662,17 +673,21 @@ export default function Reportes() {
                         Materiales Más Utilizados
                     </h2>
                     <button
-                        className="btn-green"
+                        type="button"
+                        className="btn-light"
                         onClick={descargarMaterialesPDF}
                         style={{
-                            backgroundColor: "var(--verde-secundario)",
+                            backgroundColor: "#f1f5f9",
+                            color: "#334155",
+                            border: "1px solid #cbd5e1",
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
                             fontWeight: "600",
                             padding: "8px 14px",
                             borderRadius: "8px",
-                            fontSize: "13px"
+                            fontSize: "13px",
+                            cursor: "pointer"
                         }}
                     >
                         📦 Descargar PDF Materiales
@@ -728,17 +743,21 @@ export default function Reportes() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "10px" }}>
                     <h2 style={{ margin: 0 }}>📊 Distribución de Trabajos por Estado</h2>
                     <button
-                        className="btn-green"
+                        type="button"
+                        className="btn-light"
                         onClick={descargarTrabajosPDF}
                         style={{
-                            backgroundColor: "#3b7f4a",
+                            backgroundColor: "#f1f5f9",
+                            color: "#334155",
+                            border: "1px solid #cbd5e1",
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
                             fontWeight: "600",
                             padding: "8px 14px",
                             borderRadius: "8px",
-                            fontSize: "13px"
+                            fontSize: "13px",
+                            cursor: "pointer"
                         }}
                     >
                         🛠️ Descargar PDF Trabajos
