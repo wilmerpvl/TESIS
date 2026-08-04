@@ -252,49 +252,92 @@ export default function Progreso() {
           </div>
         </div>
       </div>
-      {/* Selector de Pestañas (Tab Activa) */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+      {/* Selector de Pestañas (Segmented Control Bar / Chips) */}
+      <div 
+        style={{
+          display: "inline-flex",
+          background: "#f1f5f9",
+          padding: "4px",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0",
+          marginBottom: "20px",
+          gap: "4px"
+        }}
+      >
         <button
+          type="button"
           onClick={() => {
             setTabActiva("proceso");
             setTrabajoSeleccionado(null);
             setBuscar("");
           }}
           style={{
-            padding: "10px 20px",
-            backgroundColor: tabActiva === "proceso" ? "#24833c" : "white",
-            color: tabActiva === "proceso" ? "white" : "#4a5568",
-            border: "1px solid #e2e8f0",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            backgroundColor: tabActiva === "proceso" ? "#ffffff" : "transparent",
+            color: tabActiva === "proceso" ? "#1e293b" : "#64748b",
+            border: "none",
             borderRadius: "8px",
             cursor: "pointer",
-            fontWeight: "600",
+            fontWeight: tabActiva === "proceso" ? "700" : "500",
             fontSize: "14px",
-            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-            transition: "all 0.2s"
+            boxShadow: tabActiva === "proceso" ? "0 2px 4px rgba(0,0,0,0.08)" : "none",
+            transition: "all 0.2s ease"
           }}
         >
-          En Proceso ({trabajos.length})
+          <span>🔄 En Proceso</span>
+          <span 
+            style={{
+              padding: "2px 8px",
+              borderRadius: "12px",
+              fontSize: "12px",
+              fontWeight: "700",
+              backgroundColor: tabActiva === "proceso" ? "#e2e8f0" : "#cbd5e1",
+              color: tabActiva === "proceso" ? "#0f172a" : "#475569"
+            }}
+          >
+            {trabajos.length}
+          </span>
         </button>
+
         <button
+          type="button"
           onClick={() => {
             setTabActiva("completados");
             setTrabajoSeleccionado(null);
             setBuscar("");
           }}
           style={{
-            padding: "10px 20px",
-            backgroundColor: tabActiva === "completados" ? "#24833c" : "white",
-            color: tabActiva === "completados" ? "white" : "#4a5568",
-            border: "1px solid #e2e8f0",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            backgroundColor: tabActiva === "completados" ? "#ffffff" : "transparent",
+            color: tabActiva === "completados" ? "#1e293b" : "#64748b",
+            border: "none",
             borderRadius: "8px",
             cursor: "pointer",
-            fontWeight: "600",
+            fontWeight: tabActiva === "completados" ? "700" : "500",
             fontSize: "14px",
-            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-            transition: "all 0.2s"
+            boxShadow: tabActiva === "completados" ? "0 2px 4px rgba(0,0,0,0.08)" : "none",
+            transition: "all 0.2s ease"
           }}
         >
-          Finalizados ({trabajosCompletados.length})
+          <span>✅ Finalizados</span>
+          <span 
+            style={{
+              padding: "2px 8px",
+              borderRadius: "12px",
+              fontSize: "12px",
+              fontWeight: "700",
+              backgroundColor: tabActiva === "completados" ? "#e2e8f0" : "#cbd5e1",
+              color: tabActiva === "completados" ? "#0f172a" : "#475569"
+            }}
+          >
+            {trabajosCompletados.length}
+          </span>
         </button>
       </div>
       {/* Vista de Trabajos en Proceso */}
