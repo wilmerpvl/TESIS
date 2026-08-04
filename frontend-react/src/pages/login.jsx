@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 
-import "../css/style.css";
 import "../css/login.css";
 
 function Login() {
