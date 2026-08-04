@@ -1,40 +1,104 @@
 .overlay {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     background: linear-gradient(135deg, #774822, #2649bb);
-    padding: 20px;
 }
 
 .login-box {
-    width: 100%;
-    max-width: 400px;
+    width: 380px;
     background: #ffffff;
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    padding: 45px 35px;
-    box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
+}
+
+.top-icon-box {
+    padding-top: 30px;
+    padding-bottom: 5px;
     text-align: center;
 }
 
+.top-icon-box i {
+    font-size: 54px;
+    color: #3b7f4a;
+}
+
+.login-content {
+    padding: 0 30px 35px 30px;
+    text-align: center;
+}
+
+.login-content h2 {
+    margin-top: 10px;
+    margin-bottom: 8px;
+    font-size: 24px;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.login-content p.subtitle {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    background: #d8e3d2;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    padding: 12px 18px;
+}
+
+.input-group i {
+    margin-right: 12px;
+    color: #4a5568;
+    font-size: 16px;
+    width: 18px;
+    text-align: center;
+}
+
+.input-group input {
+    border: none;
+    outline: none;
+    background: none;
+    width: 100%;
+    font-size: 15px;
+    color: #1e293b;
+}
+
+.input-group input::placeholder {
+    color: #64748b;
+}
+
 .login-btn {
-    width: 100% !important;
-    padding: 15px 24px !important;
-    background-color: #3b7f4a !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 25px !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    box-shadow: 0 4px 15px rgba(59, 127, 74, 0.4) !important;
-    display: block !important;
+    width: 100%;
+    padding: 14px;
+    background-color: #3b7f4a;
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 12px rgba(59, 127, 74, 0.3);
+    transition: background-color 0.2s ease;
 }
 
 .login-btn:hover {
-    background-color: #2f5d44 !important;
-    box-shadow: 0 6px 18px rgba(59, 127, 74, 0.5) !important;
+    background-color: #2f5d44;
+}
+
+#error {
+    color: #ef4444;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
 }
