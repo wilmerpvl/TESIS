@@ -88,6 +88,7 @@ function Login() {
                     </div>
 
                     <button
+                        className="login-btn"
                         onClick={login}
                     >
                         Ingresar
