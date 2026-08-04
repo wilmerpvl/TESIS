@@ -15,9 +15,9 @@ import Clientes from "../pages/Clientes";
 import Proveedores from "../pages/Proveedores";
 import Tableros from "../pages/Tableros";
 import Accesorios from "../pages/Accesorios";
-import Cotizacion from "../pages/Cotizacion";
+import NuevaCotizacion from "../pages/NuevaCotizacion";
+import Cotizaciones from "../pages/Cotizaciones";
 import Trabajos from "../pages/Trabajos";
-import Progreso from "../pages/Progreso";
 import Perfil from "../pages/Perfil";
 import Reportes from "../pages/Reportes";
 import Auditoria from "../pages/Auditoria";
@@ -37,7 +37,7 @@ function RutaPermitida({ allowedRoles, children }) {
 
     if (!allowedRoles.includes(rol)) {
         if (rol === "EMPLEADO") {
-            return <Navigate to="/cotizacion" replace />;
+            return <Navigate to="/nueva-cotizacion" replace />;
         }
         return <Navigate to="/" replace />;
     }
@@ -117,10 +117,19 @@ function AppRouter() {
                     />
 
                     <Route
-                        path="cotizacion"
+                        path="nueva-cotizacion"
                         element={
                             <RutaPermitida allowedRoles={["ADMIN", "DUENO", "EMPLEADO"]}>
-                                <Cotizacion />
+                                <NuevaCotizacion />
+                            </RutaPermitida>
+                        }
+                    />
+
+                    <Route
+                        path="cotizaciones"
+                        element={
+                            <RutaPermitida allowedRoles={["ADMIN", "DUENO", "EMPLEADO"]}>
+                                <Cotizaciones />
                             </RutaPermitida>
                         }
                     />
@@ -130,15 +139,6 @@ function AppRouter() {
                         element={
                             <RutaPermitida allowedRoles={["ADMIN", "DUENO", "EMPLEADO"]}>
                                 <Trabajos />
-                            </RutaPermitida>
-                        }
-                    />
-
-                    <Route
-                        path="progreso"
-                        element={
-                            <RutaPermitida allowedRoles={["ADMIN", "DUENO", "EMPLEADO"]}>
-                                <Progreso />
                             </RutaPermitida>
                         }
                     />

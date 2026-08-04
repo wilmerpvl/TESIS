@@ -22,8 +22,8 @@ function Sidebar() {
             return !["usuarios", "auditoria"].includes(routeRol);
         }
         if (rol === "EMPLEADO") {
-            // El EMPLEADO solo ve cotizacion, trabajos, progreso, perfil
-            return ["cotizacion", "trabajos", "progreso", "perfil"].includes(routeRol);
+            // El EMPLEADO solo ve nueva-cotizacion, cotizaciones, trabajos, perfil
+            return ["nueva-cotizacion", "cotizaciones", "trabajos", "perfil"].includes(routeRol);
         }
         return false;
     };
@@ -90,20 +90,20 @@ function Sidebar() {
                     </NavLink>
                 )}
 
-                {mostrarLink("cotizacion") && (
-                    <NavLink to="/cotizacion">
+                {mostrarLink("nueva-cotizacion") && (
+                    <NavLink to="/nueva-cotizacion">
                         💰 Nueva cotización
+                    </NavLink>
+                )}
+
+                {mostrarLink("cotizaciones") && (
+                    <NavLink to="/cotizaciones">
+                        📋 Cotizaciones
                     </NavLink>
                 )}
 
                 {mostrarLink("trabajos") && (
                     <NavLink to="/trabajos">
-                        📋 Cotizaciones
-                    </NavLink>
-                )}
-
-                {mostrarLink("progreso") && (
-                    <NavLink to="/progreso">
                         📊 Trabajos
                     </NavLink>
                 )}

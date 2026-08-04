@@ -14,7 +14,7 @@ import {
     guardarCotizacion
 } from "../services/cotizacionService";
 import { dibujar } from "../utils/dibujar";
-export default function Cotizacion() {
+export default function NuevaCotizacion() {
     const canvasRef = useRef(null);
     const [tipos, setTipos] = useState([]);
     const [clientes, setClientes] = useState([]);

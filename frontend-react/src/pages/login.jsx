@@ -46,69 +46,52 @@ function Login() {
     };
 
     return (
-
         <div className="overlay">
-
             <div className="login-box">
-
-                <div className="top-image"></div>
-
                 <div className="login-content">
+                    <div className="login-logo-box">
+                        <span className="login-logo-icon">🪑</span>
+                    </div>
 
                     <h2>Iniciar Sesión</h2>
-
-                    <p>
+                    <p className="login-subtitle">
                         Sistema de Gestión de Muebles
                     </p>
 
                     <div className="input-group">
-
                         <i className="fa fa-user"></i>
-
                         <input
                             type="email"
-                            placeholder="Correo"
+                            placeholder="Correo electrónico"
                             value={email}
-                            onChange={(e) =>
-                                setEmail(
-                                    e.target.value
-                                )
-                            }
+                            onChange={(e) => setEmail(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && login()}
                         />
-
                     </div>
 
                     <div className="input-group">
-
                         <i className="fa fa-lock"></i>
-
                         <input
                             type="password"
                             placeholder="Contraseña"
                             value={password}
-                            onChange={(e) =>
-                                setPassword(
-                                    e.target.value
-                                )
-                            }
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && login()}
                         />
-
                     </div>
 
-                    <button onClick={login}>
+                    <button className="login-btn" onClick={login}>
                         Ingresar
                     </button>
 
-                    <p id="error">
-                        {error}
-                    </p>
-
+                    {error && (
+                        <p id="error">
+                            {error}
+                        </p>
+                    )}
                 </div>
-
             </div>
-
         </div>
-
     );
 
 }
