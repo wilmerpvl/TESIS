@@ -40,7 +40,7 @@ function Login() {
     return (
         <div className="overlay">
             <div className="login-box">
-                <div className="login-content">
+                <div className="login-content" style={{ padding: "35px 30px" }}>
                     {/* Ícono vectorial de usuario en círculo (avatar) */}
                     <div 
                         style={{
