@@ -338,23 +338,6 @@ export default function Clientes() {
                         <button className="btn-green" onClick={guardarCliente}>
                             {editando ? "Actualizar Cliente" : "Guardar Cliente"}
                         </button>
-                        <button
-                            className="btn-light"
-                            onClick={() => {
-                                setEditando(null);
-                                setForm({
-                                    nombre: "",
-                                    identificacion: "",
-                                    telefono: "",
-                                    correo: "",
-                                    direccion: "",
-                                    estado: 1
-                                });
-                                setErrores({});
-                            }}
-                        >
-                            Limpiar
-                        </button>
                     </div>
                 </div>
             </div>

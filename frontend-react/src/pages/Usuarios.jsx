@@ -328,22 +328,6 @@ export default function Usuarios() {
                 Guardar Usuario
               </button>
             )}
-            <button
-              className="btn-light"
-              onClick={() => {
-                setEditando(null);
-                setForm({
-                  nombre: "",
-                  email: "",
-                  password: "",
-                  rol: "",
-                  estado: 1
-                });
-                setErrores({});
-              }}
-            >
-              Limpiar
-            </button>
           </div>
         </div>
       </div>

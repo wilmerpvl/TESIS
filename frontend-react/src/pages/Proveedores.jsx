@@ -306,22 +306,6 @@ export default function Proveedores() {
             <button className="btn-green" onClick={guardarProveedor}>
               {editando ? "Actualizar Proveedor" : "Guardar Proveedor"}
             </button>
-            <button
-              className="btn-light"
-              onClick={() => {
-                setEditando(null);
-                setFormData({
-                  nombre: "",
-                  telefono: "",
-                  direccion: "",
-                  correo: "",
-                  estado: 1
-                });
-                setErrores({});
-              }}
-            >
-              Limpiar
-            </button>
           </div>
         </div>
       </div>

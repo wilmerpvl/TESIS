@@ -515,9 +515,6 @@ function Tableros() {
             <button className="btn-green" onClick={guardar}>
               {editando ? "Actualizar Tablero" : "Guardar Tablero"}
             </button>
-            <button className="btn-light" onClick={limpiarFormulario}>
-              Limpiar
-            </button>
           </div>
         </div>
       </div>
