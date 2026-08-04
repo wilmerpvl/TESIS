@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 
+import usuario from "../assets/usuario.png";
+
 import "../css/login.css";
 
 function Login() {
@@ -31,7 +33,8 @@ function Login() {
             navigate("/");
         } catch (err) {
             setError(
-                err.response?.data?.mensaje || "Error al conectar con el servidor"
+                err.response?.data?.mensaje ||
+                "Error al conectar con el servidor"
             );
         }
     };
@@ -39,40 +42,55 @@ function Login() {
     return (
         <div className="overlay">
             <div className="login-box">
-                {/* Ícono de inicio de sesión en lugar de la imagen de cocina */}
+
                 <div className="top-icon-box">
-                    <i className="fa fa-user-circle"></i>
+                    <img
+                        src={usuario}
+                        alt="Usuario"
+                        className="user-icon"
+                    />
                 </div>
 
                 <div className="login-content">
+
                     <h2>Iniciar Sesión</h2>
+
                     <p className="subtitle">
                         Sistema de Gestión de Muebles
                     </p>
 
                     <div className="input-group">
                         <i className="fa fa-user"></i>
+
                         <input
                             type="email"
-                            placeholder="Correo"
+                            placeholder="Correo electrónico"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && login()}
+                            onKeyDown={(e) =>
+                                e.key === "Enter" && login()
+                            }
                         />
                     </div>
 
                     <div className="input-group">
                         <i className="fa fa-lock"></i>
+
                         <input
                             type="password"
                             placeholder="Contraseña"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && login()}
+                            onKeyDown={(e) =>
+                                e.key === "Enter" && login()
+                            }
                         />
                     </div>
 
-                    <button className="login-btn" onClick={login}>
+                    <button
+                        className="login-btn"
+                        onClick={login}
+                    >
                         Ingresar
                     </button>
 
@@ -81,7 +99,9 @@ function Login() {
                             {error}
                         </p>
                     )}
+
                 </div>
+
             </div>
         </div>
     );
