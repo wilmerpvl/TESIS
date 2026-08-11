@@ -93,20 +93,24 @@ export default function NuevaCotizacion() {
                 // Reconstruir módulos y piezas
                 if (cotEditar.piezas && cotEditar.piezas.length > 0) {
                     const modMap = {};
-                    cotEditar.piezas.forEach(p => {
+                    cotEditar.piezas.forEach((p, idx) => {
                         const modId = p.id_modulo || 1;
-                        if (!modMap[modId]) {
-                            modMap[modId] = {
+                        const seccionId = p.id_seccion || 1;
+                        const key = `mod_${modId}_sec_${seccionId}`;
+                        if (!modMap[key]) {
+                            modMap[key] = {
+                                id: Date.now() + idx + Math.random(),
                                 id_modulo: modId,
                                 nombre: p.modulo_nombre || "Módulo",
+                                id_seccion: seccionId,
                                 piezas: []
                             };
                         }
-                        modMap[modId].piezas.push({
+                        modMap[key].piezas.push({
                             id_pieza: p.id_pieza,
                             nombre: p.pieza_nombre || "Pieza",
-                            ancho: parseFloat(p.ancho) || 0,
-                            alto: parseFloat(p.alto) || 0,
+                            ancho: p.ancho !== null && p.ancho !== undefined ? String(p.ancho) : "",
+                            alto: p.alto !== null && p.alto !== undefined ? String(p.alto) : "",
                             cantidad: parseInt(p.cantidad) || 1
                         });
                     });

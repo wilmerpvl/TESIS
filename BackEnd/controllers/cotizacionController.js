@@ -262,6 +262,7 @@ exports.obtenerCotizacionDetalle = (req, res) => {
                 d.*,
                 p.nombre AS pieza_nombre,
                 m.nombre AS modulo_nombre,
+                m.id_seccion,
                 t.nombre AS tablero_nombre,
                 t.color AS tablero_color,
                 t.tipo AS tablero_tipo

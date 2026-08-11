@@ -11,28 +11,52 @@ export default function ActionMenu({
   children
 }) {
   const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef(null);
   const menuRef = useRef(null);
+
+  const toggleMenu = (e) => {
+    e.stopPropagation();
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right
+      });
+    }
+    setOpen(!open);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (
+        menuRef.current && !menuRef.current.contains(event.target) &&
+        buttonRef.current && !buttonRef.current.contains(event.target)
+      ) {
         setOpen(false);
       }
     };
+    const handleScroll = () => {
+      if (open) setOpen(false);
+    };
+
     if (open) {
       document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, true);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [open]);
 
   return (
-    <div className="action-menu-container" ref={menuRef} style={{ position: "relative", display: "inline-block" }}>
+    <div className="action-menu-container" style={{ position: "relative", display: "inline-block" }}>
       <button
+        ref={buttonRef}
         type="button"
         className="action-menu-btn"
-        onClick={() => setOpen(!open)}
+        onClick={toggleMenu}
         title="Más opciones"
         style={{
           background: "none",
@@ -55,18 +79,18 @@ export default function ActionMenu({
 
       {open && (
         <div
+          ref={menuRef}
           className="action-menu-dropdown"
           style={{
-            position: "absolute",
-            right: 0,
-            top: "100%",
-            marginTop: "6px",
+            position: "fixed",
+            top: `${coords.top}px`,
+            right: `${coords.right}px`,
             width: "160px",
             backgroundColor: "#ffffff",
             borderRadius: "10px",
-            boxShadow: "0 10px 25px rgba(0,0,0,0.15), 0 2px 5px rgba(0,0,0,0.05)",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08)",
             border: "1px solid #e2e8f0",
-            zIndex: 999,
+            zIndex: 99999,
             overflow: "hidden",
             padding: "4px 0"
           }}
