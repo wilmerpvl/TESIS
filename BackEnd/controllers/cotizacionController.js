@@ -298,6 +298,139 @@ exports.obtenerCotizacionDetalle = (req, res) => {
     });
 };
 
+const PDFDocument = require('pdfkit');
+
+function generarPDFServer(cotizacion, piezas, accesorios) {
+    return new Promise((resolve, reject) => {
+        try {
+            const doc = new PDFDocument({ margin: 40, size: 'A4' });
+            let buffers = [];
+            doc.on('data', b => buffers.push(b));
+            doc.on('end', () => resolve(Buffer.concat(buffers)));
+
+            const verdeHex = "#1F3D2B";
+            const grisOscuro = "#1E293B";
+            const grisClaro = "#F8FAFC";
+
+            doc.rect(0, 0, doc.page.width, 60).fill(verdeHex);
+            doc.fillColor("#FFFFFF").fontSize(20).text("COTIZACIÓN DE MUEBLES", 40, 20);
+            doc.fontSize(12).text(`Nº #${cotizacion.id_cotizacion || ""}`, doc.page.width - 150, 22, { align: "right" });
+            doc.fontSize(10).text("Muebles a Medida - Universidad de Guayaquil", 40, 42);
+
+            const currentY = 80;
+            doc.fillColor(grisOscuro).fontSize(10);
+            doc.font("Helvetica-Bold").text("EMISOR:", 40, currentY);
+            doc.font("Helvetica").text("Taller de Carpintería & Muebles S.A.", 40, currentY + 14);
+            doc.text("Email: ventas@mueblescarpinteria.com", 40, currentY + 26);
+
+            doc.font("Helvetica-Bold").text("CLIENTE:", 320, currentY);
+            doc.font("Helvetica").text(cotizacion.cliente || "Consumidor Final", 320, currentY + 14);
+            if (cotizacion.cliente_correo) doc.text(`Email: ${cotizacion.cliente_correo}`, 320, currentY + 26);
+
+            const fechaStr = cotizacion.fecha ? new Date(cotizacion.fecha).toLocaleDateString() : new Date().toLocaleDateString();
+            doc.font("Helvetica-Bold").text(`Fecha: ${fechaStr}`, 40, currentY + 50);
+            doc.text(`Mueble: ${cotizacion.tipo_mueble || "Personalizado"}`, 220, currentY + 50);
+
+            let tableY = currentY + 80;
+
+            if (piezas && piezas.length > 0) {
+                doc.fillColor(verdeHex).font("Helvetica-Bold").fontSize(12).text("Detalle de Piezas y Cortes", 40, tableY);
+                tableY += 18;
+                doc.fillColor(verdeHex).rect(40, tableY, 515, 18).fill();
+                doc.fillColor("#FFFFFF").fontSize(9).font("Helvetica-Bold");
+                doc.text("Módulo", 45, tableY + 4);
+                doc.text("Pieza", 180, tableY + 4);
+                doc.text("Medidas (Ancho x Alto)", 320, tableY + 4);
+                doc.text("Cant.", 480, tableY + 4);
+                tableY += 20;
+
+                doc.fillColor(grisOscuro).font("Helvetica").fontSize(9);
+                piezas.forEach((p, i) => {
+                    if (tableY > doc.page.height - 80) {
+                        doc.addPage();
+                        tableY = 40;
+                    }
+                    if (i % 2 === 1) {
+                        doc.fillColor(grisClaro).rect(40, tableY - 2, 515, 16).fill();
+                        doc.fillColor(grisOscuro);
+                    }
+                    doc.text(p.modulo_nombre || "General", 45, tableY + 2);
+                    doc.text(p.pieza_nombre || "Pieza", 180, tableY + 2);
+                    const w = Number(p.ancho || 0).toFixed(1);
+                    const h = Number(p.alto || 0).toFixed(1);
+                    doc.text(`${w} x ${h} cm`, 320, tableY + 2);
+                    doc.text(String(p.cantidad || 1), 480, tableY + 2);
+                    tableY += 16;
+                });
+                tableY += 10;
+            }
+
+            if (accesorios && accesorios.length > 0) {
+                if (tableY > doc.page.height - 100) {
+                    doc.addPage();
+                    tableY = 40;
+                }
+                doc.fillColor(verdeHex).font("Helvetica-Bold").fontSize(12).text("Accesorios Adicionales", 40, tableY);
+                tableY += 18;
+                doc.fillColor(verdeHex).rect(40, tableY, 515, 18).fill();
+                doc.fillColor("#FFFFFF").fontSize(9).font("Helvetica-Bold");
+                doc.text("Accesorio", 45, tableY + 4);
+                doc.text("Precio Unit.", 260, tableY + 4);
+                doc.text("Cant.", 380, tableY + 4);
+                doc.text("Subtotal", 470, tableY + 4);
+                tableY += 20;
+
+                doc.fillColor(grisOscuro).font("Helvetica").fontSize(9);
+                accesorios.forEach((a, i) => {
+                    if (tableY > doc.page.height - 80) {
+                        doc.addPage();
+                        tableY = 40;
+                    }
+                    if (i % 2 === 1) {
+                        doc.fillColor(grisClaro).rect(40, tableY - 2, 515, 16).fill();
+                        doc.fillColor(grisOscuro);
+                    }
+                    const cant = parseInt(a.cantidad || 1);
+                    const sub = Number(a.subtotal || 0);
+                    const pu = Number(a.precio_unitario || (cant > 0 ? sub / cant : 0));
+                    doc.text(a.accesorio_nombre || "Accesorio", 45, tableY + 2);
+                    doc.text(`$${pu.toFixed(2)}`, 260, tableY + 2);
+                    doc.text(String(cant), 380, tableY + 2);
+                    doc.text(`$${sub.toFixed(2)}`, 470, tableY + 2);
+                    tableY += 16;
+                });
+                tableY += 10;
+            }
+
+            if (tableY > doc.page.height - 120) {
+                doc.addPage();
+                tableY = 40;
+            }
+
+            doc.fillColor(grisClaro).rect(330, tableY, 225, 80).fill();
+            doc.strokeColor("#E2E8F0").rect(330, tableY, 225, 80).stroke();
+
+            doc.fillColor(grisOscuro).fontSize(9).font("Helvetica");
+            doc.text("Costo Tableros:", 345, tableY + 10);
+            doc.text(`$${Number(cotizacion.total_tableros || 0).toFixed(2)}`, 535, tableY + 10, { align: "right" });
+            doc.text("Costo Accesorios:", 345, tableY + 24);
+            doc.text(`$${Number(cotizacion.total_accesorios || 0).toFixed(2)}`, 535, tableY + 24, { align: "right" });
+            doc.text("Mano de Obra:", 345, tableY + 38);
+            doc.text(`$${Number(cotizacion.mano_obra || 0).toFixed(2)}`, 535, tableY + 38, { align: "right" });
+            doc.text("Transporte:", 345, tableY + 52);
+            doc.text(`$${Number(cotizacion.transporte || 0).toFixed(2)}`, 535, tableY + 52, { align: "right" });
+
+            doc.font("Helvetica-Bold").fontSize(11).fillColor(verdeHex);
+            doc.text("TOTAL FINAL:", 345, tableY + 66);
+            doc.text(`$${Number(cotizacion.total_final || 0).toFixed(2)}`, 535, tableY + 66, { align: "right" });
+
+            doc.end();
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
 exports.enviarCotizacionCorreo = (req, res) => {
     const { id } = req.params;
     const { pdfBase64 } = req.body || {};
@@ -315,7 +448,7 @@ exports.enviarCotizacionCorreo = (req, res) => {
         WHERE c.id_cotizacion = ?
     `;
 
-    conexion.query(sqlCotizacion, [id], (err, rowsCot) => {
+    conexion.query(sqlCotizacion, [id], async (err, rowsCot) => {
         if (err) return res.status(500).json(err);
         if (rowsCot.length === 0) return res.status(404).json({ mensaje: "Cotización no encontrada" });
 
@@ -346,13 +479,14 @@ exports.enviarCotizacionCorreo = (req, res) => {
             const sqlAccesorios = `
                 SELECT
                     da.*,
-                    a.nombre AS accesorio_nombre
+                    a.nombre AS accesorio_nombre,
+                    a.precio_unitario
                 FROM detalle_accesorios_cotizacion da
                 INNER JOIN accesorios a ON da.id_accesorio = a.id_accesorio
                 WHERE da.id_cotizacion = ?
             `;
 
-            conexion.query(sqlAccesorios, [id], (err, rowsAccesorios) => {
+            conexion.query(sqlAccesorios, [id], async (err, rowsAccesorios) => {
                 if (err) return res.status(500).json(err);
 
                 const htmlContent = `
@@ -390,25 +524,33 @@ exports.enviarCotizacionCorreo = (req, res) => {
                     </div>
                 `;
 
-                let attachments = [];
+                let finalPdfBuffer = null;
                 if (pdfBase64 && typeof pdfBase64 === 'string') {
-                    let cleanBase64 = pdfBase64;
-                    if (cleanBase64.includes('base64,')) {
-                        cleanBase64 = cleanBase64.substring(cleanBase64.indexOf('base64,') + 7);
-                    }
+                    let cleanBase64 = pdfBase64.includes('base64,') ? pdfBase64.substring(pdfBase64.indexOf('base64,') + 7) : pdfBase64;
                     cleanBase64 = cleanBase64.replace(/[\s\r\n]/g, '');
-
-                    const pdfBuffer = Buffer.from(cleanBase64, 'base64');
-                    const headerStr = pdfBuffer.subarray(0, 5).toString('utf8');
-                    console.log(`[MAIL] Cotización #${cotizacion.id_cotizacion} - PDF Buffer size: ${pdfBuffer.length} bytes, Header: ${headerStr}`);
-
-                    if (pdfBuffer.length > 20) {
-                        attachments.push({
-                            filename: `Cotizacion_${cotizacion.id_cotizacion}_MueblesUG.pdf`,
-                            content: pdfBuffer,
-                            contentType: 'application/pdf'
-                        });
+                    const buf = Buffer.from(cleanBase64, 'base64');
+                    if (buf.length > 50 && buf.subarray(0, 4).toString('utf8') === '%PDF') {
+                        finalPdfBuffer = buf;
                     }
+                }
+
+                if (!finalPdfBuffer) {
+                    console.log(`[MAIL] Generando PDF automáticamente en servidor para cotización #${cotizacion.id_cotizacion}...`);
+                    try {
+                        finalPdfBuffer = await generarPDFServer(cotizacion, rowsPiezas, rowsAccesorios);
+                    } catch (errGen) {
+                        console.error("Error al generar PDF en servidor:", errGen);
+                    }
+                }
+
+                let attachments = [];
+                if (finalPdfBuffer && finalPdfBuffer.length > 20) {
+                    console.log(`[MAIL] Cotización #${cotizacion.id_cotizacion} - PDF Final Buffer: ${finalPdfBuffer.length} bytes`);
+                    attachments.push({
+                        filename: `Cotizacion_${cotizacion.id_cotizacion}_MueblesUG.pdf`,
+                        content: finalPdfBuffer,
+                        contentType: 'application/pdf'
+                    });
                 }
 
                 const mailOptions = {
