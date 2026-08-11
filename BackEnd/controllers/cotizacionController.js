@@ -233,6 +233,70 @@ exports.guardarCotizacion = async (req, res) => {
     }
 };
 
+exports.obtenerCotizacionDetalle = (req, res) => {
+    const { id } = req.params;
+
+    const sqlCotizacion = `
+        SELECT
+            c.*,
+            cli.nombre AS cliente,
+            cli.correo AS cliente_correo,
+            cli.telefono AS cliente_telefono,
+            tm.nombre AS tipo_mueble
+        FROM cotizaciones c
+        INNER JOIN clientes cli ON c.id_cliente = cli.id_cliente
+        INNER JOIN tipos_mueble tm ON c.id_tipo = tm.id_tipo
+        WHERE c.id_cotizacion = ?
+    `;
+
+    conexion.query(sqlCotizacion, [id], (err, rowsCot) => {
+        if (err) return res.status(500).json(err);
+        if (rowsCot.length === 0) return res.status(404).json({ mensaje: "Cotización no encontrada" });
+
+        const cotizacion = rowsCot[0];
+
+        const sqlPiezas = `
+            SELECT
+                d.*,
+                p.nombre AS pieza_nombre,
+                m.nombre AS modulo_nombre,
+                m.id_seccion,
+                t.nombre AS tablero_nombre,
+                t.color AS tablero_color,
+                t.tipo AS tablero_tipo
+            FROM detalle_piezas_cotizacion d
+            LEFT JOIN piezas_modulo p ON d.id_pieza = p.id_pieza
+            LEFT JOIN modulos m ON d.id_modulo = m.id_modulo
+            LEFT JOIN tableros t ON d.id_tablero = t.id_tablero
+            WHERE d.id_cotizacion = ?
+        `;
+
+        conexion.query(sqlPiezas, [id], (err, rowsPiezas) => {
+            if (err) return res.status(500).json(err);
+
+            const sqlAccesorios = `
+                SELECT
+                    da.*,
+                    a.nombre AS accesorio_nombre,
+                    a.precio_unitario
+                FROM detalle_accesorios_cotizacion da
+                INNER JOIN accesorios a ON da.id_accesorio = a.id_accesorio
+                WHERE da.id_cotizacion = ?
+            `;
+
+            conexion.query(sqlAccesorios, [id], (err, rowsAccesorios) => {
+                if (err) return res.status(500).json(err);
+
+                res.json({
+                    cotizacion,
+                    piezas: rowsPiezas,
+                    accesorios: rowsAccesorios
+                });
+            });
+        });
+    });
+};
+
 exports.enviarCotizacionCorreo = (req, res) => {
     const { id } = req.params;
     const { pdfBase64 } = req.body || {};
