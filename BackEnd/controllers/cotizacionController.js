@@ -390,18 +390,22 @@ exports.enviarCotizacionCorreo = (req, res) => {
                     </div>
                 `;
 
+                let attachments = [];
+                if (pdfBase64) {
+                    const rawBase64 = pdfBase64.includes('base64,') ? pdfBase64.split('base64,')[1] : pdfBase64;
+                    attachments.push({
+                        filename: `Cotizacion_${cotizacion.id_cotizacion}_MueblesUG.pdf`,
+                        content: Buffer.from(rawBase64, 'base64'),
+                        contentType: 'application/pdf'
+                    });
+                }
+
                 const mailOptions = {
                     from: `"Mueblería UG" <${process.env.SMTP_USER || "noreply@muebles.com"}>`,
                     to: destinatario,
                     subject: `Cotización #${cotizacion.id_cotizacion} - Muebles a Medida`,
                     html: htmlContent,
-                    attachments: pdfBase64 ? [
-                        {
-                            filename: `cotizacion-${cotizacion.id_cotizacion}.pdf`,
-                            content: pdfBase64,
-                            encoding: 'base64'
-                        }
-                    ] : []
+                    attachments
                 };
 
                 const sendMailWithTransporter = (t, mOptions, isFallback = false) => {
