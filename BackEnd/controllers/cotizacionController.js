@@ -398,16 +398,18 @@ exports.enviarCotizacionCorreo = (req, res) => {
                     }
                     cleanBase64 = cleanBase64.replace(/[\s\r\n]/g, '');
 
-                    if (cleanBase64.length > 50) {
+                    const pdfBuffer = Buffer.from(cleanBase64, 'base64');
+                    const headerStr = pdfBuffer.subarray(0, 5).toString('utf8');
+                    console.log(`[MAIL] Cotización #${cotizacion.id_cotizacion} - PDF Buffer size: ${pdfBuffer.length} bytes, Header: ${headerStr}`);
+
+                    if (pdfBuffer.length > 20) {
                         attachments.push({
                             filename: `Cotizacion_${cotizacion.id_cotizacion}_MueblesUG.pdf`,
-                            content: cleanBase64,
-                            encoding: 'base64',
+                            content: pdfBuffer,
                             contentType: 'application/pdf'
                         });
                     }
                 }
-                console.log(`[MAIL] Cotización #${cotizacion.id_cotizacion} - Adjuntos incluidos: ${attachments.length}`);
 
                 const mailOptions = {
                     from: `"Mueblería UG" <${process.env.SMTP_USER || "noreply@muebles.com"}>`,
