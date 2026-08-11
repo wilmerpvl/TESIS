@@ -174,39 +174,37 @@ const generarPDFCotizacionServer = (cotizacionData, imagenCorte = null) => {
         currentY = 20;
 
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
+        doc.setFontSize(13);
         doc.setTextColor(31, 61, 43);
         doc.text("Diagrama de Distribución de Cortes", 14, currentY);
-        currentY += 10;
+        currentY += 8;
 
         const colorNombre = piezas && piezas[0] ? (piezas[0].tablero_color || piezas[0].tablero_nombre || "Visón Verde") : "Visón Verde";
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.text(`TABLÓN 1 - ${colorNombre}`, 14, currentY);
-        currentY += 6;
+        currentY += 5;
 
         if (imagenCorte) {
-            doc.addImage(imagenCorte, "PNG", 14, currentY, 182, 100);
+            doc.addImage(imagenCorte, "PNG", 14, currentY, 160, 75);
         } else {
-            // Dibujado Vectorial Nativo del Tablero 2D
-            const boardX = 14;
-            const boardY = currentY;
-            const boardW = 182;
-            const boardH = 100;
+            // Dibujado Vectorial Nativo del Tablero 2D (Centrado y escalado a 160x70mm)
+            const boardX = 25;
+            const boardY = currentY + 2;
+            const boardW = 160;
+            const boardH = 70;
+
+            const boardRealW = 244;
+            const boardRealH = 214;
+            const scaleX = boardW / boardRealW;
+            const scaleY = boardH / boardRealH;
 
             doc.setFillColor(241, 245, 249);
             doc.rect(boardX, boardY, boardW, boardH, "F");
             doc.setDrawColor(30, 41, 59);
-            doc.setLineWidth(0.8);
+            doc.setLineWidth(0.6);
             doc.rect(boardX, boardY, boardW, boardH, "S");
 
-            let currX = boardX;
-            let currY = boardY;
-            let rowH = 0;
-
-            const boardRealW = 244;
-            const boardRealH = 183;
-            const scaleX = boardW / boardRealW;
-            const scaleY = boardH / boardRealH;
+            let espacios = [{ x: 0, y: 0, w: boardRealW, h: boardRealH }];
 
             piezasValidas.forEach((p) => {
                 const pW = Number(p.ancho || 0);
@@ -214,34 +212,40 @@ const generarPDFCotizacionServer = (cotizacionData, imagenCorte = null) => {
                 const cant = parseInt(p.cantidad || 1);
 
                 for (let c = 0; c < cant; c++) {
-                    const drawW = Math.min(pW * scaleX, boardW - (currX - boardX));
-                    const drawH = Math.min(pH * scaleY, boardH - (currY - boardY));
+                    const idx = espacios.findIndex(e => e.w >= pW && e.h >= pH);
+                    if (idx !== -1) {
+                        const esp = espacios.splice(idx, 1)[0];
 
-                    if (currX + drawW > boardX + boardW + 0.1) {
-                        currX = boardX;
-                        currY += rowH;
-                        rowH = 0;
-                    }
+                        const drawX = boardX + (esp.x * scaleX);
+                        const drawY = boardY + (esp.y * scaleY);
+                        const drawW = pW * scaleX;
+                        const drawH = pH * scaleY;
 
-                    if (currY + drawH <= boardY + boardH + 0.1) {
                         doc.setFillColor(95, 127, 104);
-                        doc.rect(currX, currY, drawW, drawH, "F");
+                        doc.rect(drawX, drawY, drawW, drawH, "F");
                         doc.setDrawColor(30, 41, 59);
                         doc.setLineWidth(0.3);
-                        doc.rect(currX, currY, drawW, drawH, "S");
+                        doc.rect(drawX, drawY, drawW, drawH, "S");
 
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFont("helvetica", "bold");
-                        doc.setFontSize(8);
-                        const labelNombre = p.pieza_nombre || p.observacion || "Pieza";
-                        doc.text(labelNombre, currX + drawW / 2, currY + drawH / 2 - 1, { align: "center" });
+                        if (drawW > 10 && drawH > 6) {
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFont("helvetica", "bold");
+                            doc.setFontSize(drawW < 25 ? 6 : 7.5);
+                            const labelNombre = p.pieza_nombre || p.observacion || "Pieza";
+                            doc.text(labelNombre, drawX + drawW / 2, drawY + drawH / 2 - 1, { align: "center" });
 
-                        doc.setFont("helvetica", "normal");
-                        doc.setFontSize(7);
-                        doc.text(`${pW.toFixed(1)} x ${pH.toFixed(1)} cm`, currX + drawW / 2, currY + drawH / 2 + 3, { align: "center" });
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(drawW < 25 ? 5 : 6.5);
+                            doc.text(`${pW.toFixed(1)} x ${pH.toFixed(1)} cm`, drawX + drawW / 2, drawY + drawH / 2 + 3, { align: "center" });
+                        }
 
-                        currX += drawW;
-                        if (drawH > rowH) rowH = drawH;
+                        if (esp.w - pW > 0) {
+                            espacios.push({ x: esp.x + pW, y: esp.y, w: esp.w - pW, h: pH });
+                        }
+                        if (esp.h - pH > 0) {
+                            espacios.push({ x: esp.x, y: esp.y + pH, w: esp.w, h: esp.h - pH });
+                        }
+                        espacios.sort((a, b) => (a.y - b.y) || (a.x - b.x));
                     }
                 }
             });
