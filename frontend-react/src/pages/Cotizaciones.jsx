@@ -181,7 +181,7 @@ export default function Cotizaciones() {
       // 3. Generar PDF comercial exacto en memoria
       const { generarPDFCotizacion } = await import("../utils/pdfGenerator");
       const doc = generarPDFCotizacion(data, base64Image, false);
-      const pdfBase64 = doc.output("datauristring");
+      const pdfBase64 = doc.output("base64");
       
       // 4. Enviar correo con el PDF adjunto
       const res = await api.post(`/enviar-cotizacion-correo/${c.id_cotizacion}`, {

@@ -391,13 +391,21 @@ exports.enviarCotizacionCorreo = (req, res) => {
                 `;
 
                 let attachments = [];
-                if (pdfBase64) {
-                    const rawBase64 = pdfBase64.includes('base64,') ? pdfBase64.split('base64,')[1] : pdfBase64;
-                    attachments.push({
-                        filename: `Cotizacion_${cotizacion.id_cotizacion}_MueblesUG.pdf`,
-                        content: Buffer.from(rawBase64, 'base64'),
-                        contentType: 'application/pdf'
-                    });
+                if (pdfBase64 && typeof pdfBase64 === 'string') {
+                    let cleanBase64 = pdfBase64;
+                    if (cleanBase64.includes('base64,')) {
+                        cleanBase64 = cleanBase64.substring(cleanBase64.indexOf('base64,') + 7);
+                    }
+                    cleanBase64 = cleanBase64.replace(/[\s\r\n]/g, '');
+
+                    const pdfBuffer = Buffer.from(cleanBase64, 'base64');
+                    if (pdfBuffer.length > 20) {
+                        attachments.push({
+                            filename: `Cotizacion_${cotizacion.id_cotizacion}_MueblesUG.pdf`,
+                            content: pdfBuffer,
+                            contentType: 'application/pdf'
+                        });
+                    }
                 }
 
                 const mailOptions = {
