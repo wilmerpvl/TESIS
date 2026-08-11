@@ -167,21 +167,85 @@ const generarPDFCotizacionServer = (cotizacionData, imagenCorte = null) => {
     doc.text("TOTAL COTIZADO:", 114, currentY + 44);
     doc.text(`$${safeNum(cotizacion.total_final).toFixed(2)}`, 192, currentY + 44, { align: "right" });
 
-    currentY += 62;
-
-    // Distribución de Cortes (Diagrama del Tablero)
-    if (imagenCorte) {
-        if (currentY > 175) {
-            doc.addPage();
-            currentY = 20;
-        }
+    // Página 2: Distribución de Cortes (Diagrama del Tablero)
+    const piezasValidas = (piezas || []).filter(p => Number(p.ancho || 0) > 0 && Number(p.alto || 0) > 0);
+    if (piezasValidas.length > 0 || imagenCorte) {
+        doc.addPage();
+        currentY = 20;
 
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
+        doc.setFontSize(14);
         doc.setTextColor(31, 61, 43);
         doc.text("Diagrama de Distribución de Cortes", 14, currentY);
+        currentY += 10;
 
-        doc.addImage(imagenCorte, "PNG", 14, currentY + 5, 182, 90);
+        const colorNombre = piezas && piezas[0] ? (piezas[0].tablero_color || piezas[0].tablero_nombre || "Visón Verde") : "Visón Verde";
+        doc.setFontSize(11);
+        doc.text(`TABLÓN 1 - ${colorNombre}`, 14, currentY);
+        currentY += 6;
+
+        if (imagenCorte) {
+            doc.addImage(imagenCorte, "PNG", 14, currentY, 182, 100);
+        } else {
+            // Dibujado Vectorial Nativo del Tablero 2D
+            const boardX = 14;
+            const boardY = currentY;
+            const boardW = 182;
+            const boardH = 100;
+
+            doc.setFillColor(241, 245, 249);
+            doc.rect(boardX, boardY, boardW, boardH, "F");
+            doc.setDrawColor(30, 41, 59);
+            doc.setLineWidth(0.8);
+            doc.rect(boardX, boardY, boardW, boardH, "S");
+
+            let currX = boardX;
+            let currY = boardY;
+            let rowH = 0;
+
+            const boardRealW = 244;
+            const boardRealH = 183;
+            const scaleX = boardW / boardRealW;
+            const scaleY = boardH / boardRealH;
+
+            piezasValidas.forEach((p) => {
+                const pW = Number(p.ancho || 0);
+                const pH = Number(p.alto || 0);
+                const cant = parseInt(p.cantidad || 1);
+
+                for (let c = 0; c < cant; c++) {
+                    const drawW = Math.min(pW * scaleX, boardW - (currX - boardX));
+                    const drawH = Math.min(pH * scaleY, boardH - (currY - boardY));
+
+                    if (currX + drawW > boardX + boardW + 0.1) {
+                        currX = boardX;
+                        currY += rowH;
+                        rowH = 0;
+                    }
+
+                    if (currY + drawH <= boardY + boardH + 0.1) {
+                        doc.setFillColor(95, 127, 104);
+                        doc.rect(currX, currY, drawW, drawH, "F");
+                        doc.setDrawColor(30, 41, 59);
+                        doc.setLineWidth(0.3);
+                        doc.rect(currX, currY, drawW, drawH, "S");
+
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFont("helvetica", "bold");
+                        doc.setFontSize(8);
+                        const labelNombre = p.pieza_nombre || p.observacion || "Pieza";
+                        doc.text(labelNombre, currX + drawW / 2, currY + drawH / 2 - 1, { align: "center" });
+
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(7);
+                        doc.text(`${pW.toFixed(1)} x ${pH.toFixed(1)} cm`, currX + drawW / 2, currY + drawH / 2 + 3, { align: "center" });
+
+                        currX += drawW;
+                        if (drawH > rowH) rowH = drawH;
+                    }
+                }
+            });
+        }
     }
 
     return Buffer.from(doc.output("arraybuffer"));
