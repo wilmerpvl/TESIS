@@ -151,31 +151,37 @@ export default function Cotizaciones() {
     if (!c.id_cotizacion) return;
     setEnviandoCorreo(c.id_cotizacion);
     try {
-      // 1. Obtener detalles de la cotización
+      // 1. Obtener detalles completos de la cotización
       const resDetail = await api.get(`/cotizacion-detalle/${c.id_cotizacion}`);
       const data = resDetail.data;
       
-      // 2. Generar diagrama de cortes
+      // 2. Generar diagrama de cortes si existen piezas
       let base64Image = null;
-      if (data.piezas && data.piezas.length > 0) {
-        const canvas = document.createElement("canvas");
-        const piezasFormateadas = data.piezas.map(p => ({
-          nombre: p.pieza_nombre || "Pieza",
-          ancho: parseFloat(p.ancho),
-          alto: parseFloat(p.alto),
-          cantidad: p.cantidad
-        }));
-        const tableroColor = data.piezas[0]?.tablero_color || "Blanco";
-        
-        const { dibujar } = await import("../utils/dibujar");
-        dibujar({ current: canvas }, piezasFormateadas, tableroColor);
-        base64Image = canvas.toDataURL("image/png");
+      try {
+        if (data.piezas && data.piezas.length > 0) {
+          const canvas = document.createElement("canvas");
+          canvas.width = 800;
+          canvas.height = 500;
+          const piezasFormateadas = data.piezas.map(p => ({
+            nombre: p.pieza_nombre || "Pieza",
+            ancho: parseFloat(p.ancho) || 0,
+            alto: parseFloat(p.alto) || 0,
+            cantidad: parseInt(p.cantidad) || 1
+          }));
+          const tableroColor = data.piezas[0]?.tablero_color || "Blanco";
+          
+          const { dibujar } = await import("../utils/dibujar");
+          dibujar({ current: canvas }, piezasFormateadas, tableroColor);
+          base64Image = canvas.toDataURL("image/png");
+        }
+      } catch (errCanvas) {
+        console.warn("No se pudo generar diagrama de canvas para el PDF:", errCanvas);
       }
       
-      // 3. Generar PDF en memoria
+      // 3. Generar PDF comercial exacto en memoria
       const { generarPDFCotizacion } = await import("../utils/pdfGenerator");
       const doc = generarPDFCotizacion(data, base64Image, false);
-      const pdfBase64 = doc.output("base64");
+      const pdfBase64 = doc.output("datauristring");
       
       // 4. Enviar correo con el PDF adjunto
       const res = await api.post(`/enviar-cotizacion-correo/${c.id_cotizacion}`, {
