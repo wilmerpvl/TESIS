@@ -468,12 +468,16 @@ exports.enviarCotizacionCorreo = (req, res) => {
                     });
                 } else {
                     const envTransporter = nodemailer.createTransport({
-                        host: process.env.SMTP_HOST,
-                        port: parseInt(process.env.SMTP_PORT || "587"),
-                        secure: process.env.SMTP_SECURE === "true",
+                        service: process.env.SMTP_HOST?.includes('gmail') ? 'gmail' : undefined,
+                        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                        port: parseInt(process.env.SMTP_PORT || "465"),
+                        secure: process.env.SMTP_SECURE === "true" || process.env.SMTP_PORT === "465",
                         auth: {
                             user: process.env.SMTP_USER,
                             pass: process.env.SMTP_PASS
+                        },
+                        tls: {
+                            rejectUnauthorized: false
                         }
                     });
                     sendMailWithTransporter(envTransporter, mailOptions, false);
