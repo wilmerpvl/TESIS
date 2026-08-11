@@ -407,49 +407,76 @@ exports.enviarCotizacionCorreo = (req, res) => {
                         ] : []
                     };
 
-                    transporter.sendMail(mailOptions, (errorMail, info) => {
-                        if (errorMail) {
-                            console.error("Error al enviar correo:", errorMail);
-                            return res.status(500).json({ mensaje: "Error al enviar el correo.", detalle: errorMail.message });
-                        }
-                        
-                        const previewUrl = nodemailer.getTestMessageUrl(info);
-                        res.json({ 
-                            mensaje: "Correo enviado correctamente a " + destinatario, 
-                            previewUrl: previewUrl || null 
-                        });
-                    });
-                };
-
-                if (!process.env.SMTP_HOST && !process.env.SMTP_USER) {
-                    nodemailer.createTestAccount((errAccount, account) => {
-                        if (errAccount) {
-                            console.error("Error creando cuenta ethereal:", errAccount);
-                            return res.status(500).json({ mensaje: "Error de configuración de correo." });
-                        }
-                        const testTransporter = nodemailer.createTransport({
-                            host: account.smtp.host,
-                            port: account.smtp.port,
-                            secure: account.smtp.secure,
-                            auth: {
-                                user: account.user,
-                                pass: account.pass
+                    const sendMailWithTransporter = (t, mOptions, isFallback = false) => {
+                        t.sendMail(mOptions, (errorMail, info) => {
+                            if (errorMail) {
+                                console.error("Error al enviar correo con transporter:", errorMail.message);
+                                if (!isFallback) {
+                                    console.warn("Intentando envío alternativo mediante Ethereal...");
+                                    nodemailer.createTestAccount((errAccount, account) => {
+                                        if (errAccount) {
+                                            return res.status(500).json({ mensaje: "Error al enviar el correo.", detalle: errorMail.message });
+                                        }
+                                        const fallbackTransporter = nodemailer.createTransport({
+                                            host: account.smtp.host,
+                                            port: account.smtp.port,
+                                            secure: account.smtp.secure,
+                                            auth: {
+                                                user: account.user,
+                                                pass: account.pass
+                                            }
+                                        });
+                                        const fallbackOptions = {
+                                            ...mOptions,
+                                            from: `"Mueblería UG" <${account.user}>`
+                                        };
+                                        sendMailWithTransporter(fallbackTransporter, fallbackOptions, true);
+                                    });
+                                } else {
+                                    return res.status(500).json({ mensaje: "Error al enviar el correo.", detalle: errorMail.message });
+                                }
+                            } else {
+                                const previewUrl = nodemailer.getTestMessageUrl(info);
+                                res.json({ 
+                                    mensaje: "Correo enviado correctamente a " + destinatario, 
+                                    previewUrl: previewUrl || null 
+                                });
                             }
                         });
-                        enviarConTransporter(testTransporter);
-                    });
-                } else {
-                    const envTransporter = nodemailer.createTransport({
-                        host: process.env.SMTP_HOST,
-                        port: parseInt(process.env.SMTP_PORT || "587"),
-                        secure: process.env.SMTP_SECURE === "true",
-                        auth: {
-                            user: process.env.SMTP_USER,
-                            pass: process.env.SMTP_PASS
-                        }
-                    });
-                    enviarConTransporter(envTransporter);
-                }
+                    };
+
+                    if (!process.env.SMTP_HOST && !process.env.SMTP_USER) {
+                        nodemailer.createTestAccount((errAccount, account) => {
+                            if (errAccount) {
+                                return res.status(500).json({ mensaje: "Error de configuración de correo." });
+                            }
+                            const testTransporter = nodemailer.createTransport({
+                                host: account.smtp.host,
+                                port: account.smtp.port,
+                                secure: account.smtp.secure,
+                                auth: {
+                                    user: account.user,
+                                    pass: account.pass
+                                }
+                            });
+                            const options = {
+                                ...mailOptions,
+                                from: `"Mueblería UG" <${account.user}>`
+                            };
+                            sendMailWithTransporter(testTransporter, options, true);
+                        });
+                    } else {
+                        const envTransporter = nodemailer.createTransport({
+                            host: process.env.SMTP_HOST,
+                            port: parseInt(process.env.SMTP_PORT || "587"),
+                            secure: process.env.SMTP_SECURE === "true",
+                            auth: {
+                                user: process.env.SMTP_USER,
+                                pass: process.env.SMTP_PASS
+                            }
+                        });
+                        sendMailWithTransporter(envTransporter, mailOptions, false);
+                    }
             });
         });
     });
