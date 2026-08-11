@@ -11,6 +11,8 @@ router.get('/accesorios-cotizacion', cotizacionController.obtenerAccesoriosCotiz
 router.get('/clientes-cotizacion', cotizacionController.obtenerClientesCotizacion);
 router.get('/modulo-completo/:id', cotizacionController.obtenerModuloCompleto);
 router.post('/guardar-cotizacion', cotizacionController.guardarCotizacion);
+router.put('/actualizar-cotizacion/:id', cotizacionController.actualizarCotizacion);
+router.delete('/cotizacion/:id', cotizacionController.eliminarCotizacion);
 router.get("/cotizacion-detalle/:id", cotizacionController.obtenerCotizacionDetalle);
 router.post("/enviar-cotizacion-correo/:id", cotizacionController.enviarCotizacionCorreo);
 

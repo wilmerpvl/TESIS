@@ -40,6 +40,16 @@ export const guardarCotizacion = async (data) => {
     return res.data;
 };
 
+export const actualizarCotizacion = async (id, data) => {
+    const res = await api.put(`/actualizar-cotizacion/${id}`, data);
+    return res.data;
+};
+
+export const eliminarCotizacion = async (id) => {
+    const res = await api.delete(`/cotizacion/${id}`);
+    return res.data;
+};
+
 // ======================================
 // TRABAJOS
 // ======================================

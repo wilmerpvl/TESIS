@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import TipoMueble from "../components/cotizacion/TipoMueble";
 import ModalTableros from "../components/cotizacion/ModalTableros";
 import Modulos from "../components/cotizacion/Modulos";
@@ -11,11 +12,15 @@ import {
     obtenerTableros,
     obtenerAccesorios,
     obtenerClientes,
-    guardarCotizacion
+    guardarCotizacion,
+    actualizarCotizacion
 } from "../services/cotizacionService";
 import { dibujar } from "../utils/dibujar";
 export default function NuevaCotizacion() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const canvasRef = useRef(null);
+    const [cotizacionEditarId, setCotizacionEditarId] = useState(null);
     const [tipos, setTipos] = useState([]);
     const [clientes, setClientes] = useState([]);
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
@@ -62,6 +67,64 @@ export default function NuevaCotizacion() {
             setTipos(Array.isArray(tiposData) ? tiposData : []);
             setTableros(Array.isArray(tablerosData) ? tablerosData : []);
             setAccesoriosDisponibles(Array.isArray(accesoriosData) ? accesoriosData : []);
+
+            // Si viene una cotización a editar desde el estado de navegación
+            const cotEditar = location.state?.cotizacionEditar;
+            if (cotEditar && cotEditar.cotizacion) {
+                const c = cotEditar.cotizacion;
+                setCotizacionEditarId(c.id_cotizacion);
+                
+                // Cliente
+                const clientMatch = Array.isArray(clientesData) ? clientesData.find(cl => cl.id_cliente == c.id_cliente) : null;
+                setClienteSeleccionado(clientMatch || { id_cliente: c.id_cliente, nombre: c.cliente });
+                
+                // Tipo de mueble
+                setTipoSeleccionado(String(c.id_tipo || ""));
+
+                // Tablero
+                if (cotEditar.piezas && cotEditar.piezas.length > 0) {
+                    const firstPieza = cotEditar.piezas[0];
+                    const tabMatch = Array.isArray(tablerosData) ? tablerosData.find(t => t.id_tablero == firstPieza.id_tablero) : null;
+                    if (tabMatch) {
+                        setTableroSeleccionado(tabMatch);
+                    }
+                }
+
+                // Reconstruir módulos y piezas
+                if (cotEditar.piezas && cotEditar.piezas.length > 0) {
+                    const modMap = {};
+                    cotEditar.piezas.forEach(p => {
+                        const modId = p.id_modulo || 1;
+                        if (!modMap[modId]) {
+                            modMap[modId] = {
+                                id_modulo: modId,
+                                nombre: p.modulo_nombre || "Módulo",
+                                piezas: []
+                            };
+                        }
+                        modMap[modId].piezas.push({
+                            id_pieza: p.id_pieza,
+                            nombre: p.pieza_nombre || "Pieza",
+                            ancho: parseFloat(p.ancho) || 0,
+                            alto: parseFloat(p.alto) || 0,
+                            cantidad: parseInt(p.cantidad) || 1
+                        });
+                    });
+                    setModulos(Object.values(modMap));
+                }
+
+                // Reconstruir accesorios
+                if (cotEditar.accesorios && cotEditar.accesorios.length > 0) {
+                    const accList = cotEditar.accesorios.map(a => ({
+                        id_accesorio: a.id_accesorio,
+                        cantidad: parseInt(a.cantidad) || 1
+                    }));
+                    setAccesorios(accList);
+                }
+
+                setManoObra(parseFloat(c.mano_obra) || 0);
+                setTransporte(parseFloat(c.transporte) || 0);
+            }
         } catch (error) {
             console.error(error);
         }
@@ -193,9 +256,19 @@ export default function NuevaCotizacion() {
                 accesorios: accesoriosGuardar,
                 id_usuario // Se envía para registrar en auditoría
             };
-            const data = await guardarCotizacion(payload);
-            mostrarAlerta(data.mensaje || data.message || "Cotización guardada correctamente.", "Éxito", "success");
+
+            let data;
+            if (cotizacionEditarId) {
+                data = await actualizarCotizacion(cotizacionEditarId, payload);
+                mostrarAlerta(data.mensaje || data.message || `Cotización #${cotizacionEditarId} actualizada correctamente.`, "Éxito", "success");
+            } else {
+                data = await guardarCotizacion(payload);
+                mostrarAlerta(data.mensaje || data.message || "Cotización guardada correctamente.", "Éxito", "success");
+            }
             setMostrarResultado(false);
+            setTimeout(() => {
+                navigate("/cotizaciones");
+            }, 1200);
         } catch (error) {
             console.error(error);
             mostrarAlerta("Error al guardar la cotización", "Error", "error");

@@ -453,3 +453,146 @@ exports.enviarCotizacionCorreo = (req, res) => {
         });
     });
 };
+
+exports.actualizarCotizacion = async (req, res) => {
+    const { id } = req.params;
+    const {
+        id_cliente,
+        id_tipo,
+        total_tableros,
+        total_accesorios,
+        mano_obra,
+        transporte,
+        total_final,
+        detalles,
+        accesorios,
+        id_usuario
+    } = req.body;
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+    } catch (e) {
+        console.error("Error al obtener conexión del pool:", e);
+        return res.status(500).json({ mensaje: "Error al conectar con la base de datos" });
+    }
+
+    try {
+        await connection.beginTransaction();
+
+        const sqlUpdate = `
+            UPDATE cotizaciones
+            SET id_cliente = ?, id_tipo = ?, total_tableros = ?, total_accesorios = ?, mano_obra = ?, transporte = ?, total_final = ?
+            WHERE id_cotizacion = ?
+        `;
+        await connection.query(sqlUpdate, [
+            id_cliente,
+            id_tipo,
+            total_tableros,
+            total_accesorios,
+            mano_obra,
+            transporte,
+            total_final,
+            id
+        ]);
+
+        await connection.query("DELETE FROM detalle_piezas_cotizacion WHERE id_cotizacion = ?", [id]);
+        await connection.query("DELETE FROM detalle_accesorios_cotizacion WHERE id_cotizacion = ?", [id]);
+
+        if (detalles && detalles.length > 0) {
+            const piezasPromises = detalles.map(det => {
+                const sqlDetalle = `
+                    INSERT INTO detalle_piezas_cotizacion
+                    (id_cotizacion, id_modulo, id_pieza, id_tablero, ancho, alto, cantidad, costo, observacion)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+                return connection.query(sqlDetalle, [
+                    id,
+                    det.id_modulo,
+                    det.id_pieza,
+                    det.id_tablero,
+                    det.ancho,
+                    det.alto,
+                    det.cantidad,
+                    det.costo,
+                    det.observacion || ''
+                ]);
+            });
+            await Promise.all(piezasPromises);
+        }
+
+        if (accesorios && accesorios.length > 0) {
+            const accesoriosPromises = accesorios.map(acc => {
+                const sqlAccesorio = `
+                    INSERT INTO detalle_accesorios_cotizacion
+                    (id_cotizacion, id_accesorio, cantidad, subtotal)
+                    VALUES (?, ?, ?, ?)
+                `;
+                return connection.query(sqlAccesorio, [
+                    id,
+                    acc.id_accesorio,
+                    acc.cantidad,
+                    acc.subtotal
+                ]);
+            });
+            await Promise.all(accesoriosPromises);
+        }
+
+        await connection.commit();
+
+        if (id_usuario) {
+            registrarAuditoria(id_usuario, "Actualizó la cotización #" + id);
+        }
+
+        res.json({
+            message: 'Cotización actualizada correctamente',
+            idCotizacion: id
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error al actualizar la cotización:", error);
+        res.status(500).json({ mensaje: 'Error al actualizar la cotización. Operación cancelada.' });
+    } finally {
+        connection.release();
+    }
+};
+
+exports.eliminarCotizacion = async (req, res) => {
+    const { id } = req.params;
+    const { id_usuario } = req.body || {};
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+    } catch (e) {
+        console.error("Error al obtener conexión:", e);
+        return res.status(500).json({ mensaje: "Error al conectar con la base de datos" });
+    }
+
+    try {
+        await connection.beginTransaction();
+
+        await connection.query("DELETE FROM avance_trabajo WHERE id_trabajo IN (SELECT id_trabajo FROM trabajos WHERE id_cotizacion = ?)", [id]);
+        await connection.query("DELETE FROM trabajos WHERE id_cotizacion = ?", [id]);
+        await connection.query("DELETE FROM detalle_piezas_cotizacion WHERE id_cotizacion = ?", [id]);
+        await connection.query("DELETE FROM detalle_accesorios_cotizacion WHERE id_cotizacion = ?", [id]);
+        
+        await connection.query("DELETE FROM cotizaciones WHERE id_cotizacion = ?", [id]);
+
+        await connection.commit();
+
+        if (id_usuario) {
+            registrarAuditoria(id_usuario, "Eliminó la cotización #" + id);
+        }
+
+        res.json({ mensaje: "Cotización eliminada correctamente" });
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error al eliminar cotización:", error);
+        res.status(500).json({ mensaje: "Error al eliminar la cotización" });
+    } finally {
+        connection.release();
+    }
+};
+

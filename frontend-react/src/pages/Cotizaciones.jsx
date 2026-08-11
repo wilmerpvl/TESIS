@@ -1,12 +1,18 @@
 import "../css/trabajos.css";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import ActionMenu from "../components/ActionMenu";
 import { crearTrabajo } from "../services/cotizacionService";
 
 export default function Cotizaciones() {
+  const navigate = useNavigate();
   const [cotizaciones, setCotizaciones] = useState([]);
   const [buscar, setBuscar] = useState("");
   
+  // Estado para eliminar cotización
+  const [cotizacionParaEliminar, setCotizacionParaEliminar] = useState(null);
+
   // Estados para el Modal de inicio de trabajo
   const [cotizacionSeleccionada, setCotizacionSeleccionada] = useState(null);
   const [prioridad, setPrioridad] = useState("MEDIA");
@@ -78,6 +84,34 @@ export default function Cotizaciones() {
     } catch (error) {
       console.error("Error al cargar detalle:", error);
       mostrarAlerta("Error al cargar el detalle de la cotización.", "Error", "error");
+    }
+  };
+
+  const editarCotizacion = async (c) => {
+    try {
+      const res = await api.get(`/cotizacion-detalle/${c.id_cotizacion}`);
+      navigate("/nueva-cotizacion", { state: { cotizacionEditar: res.data } });
+    } catch (error) {
+      console.error("Error al cargar cotización para edición:", error);
+      mostrarAlerta("Error al cargar los datos de la cotización.", "Error", "error");
+    }
+  };
+
+  const confirmarEliminacionCotizacion = async () => {
+    if (!cotizacionParaEliminar) return;
+    try {
+      const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
+      const id_usuario = usuarioLogueado ? (usuarioLogueado.id || usuarioLogueado.id_usuario) : null;
+
+      await api.delete(`/cotizacion/${cotizacionParaEliminar.id_cotizacion}`, {
+        data: { id_usuario }
+      });
+      setCotizacionParaEliminar(null);
+      mostrarAlerta("Cotización eliminada correctamente.", "Éxito", "success");
+      cargar();
+    } catch (error) {
+      console.error("Error al eliminar la cotización:", error);
+      mostrarAlerta("No se pudo eliminar la cotización.", "Error", "error");
     }
   };
 
@@ -266,39 +300,148 @@ export default function Cotizaciones() {
                           </span>
                         </td>
                         <td>
-                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                            <button
-                              className="btn-light"
-                              style={{ padding: "6px 10px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
-                              onClick={() => verDetalle(c.id_cotizacion)}
-                            >
-                              👁️ Detalle
-                            </button>
-                            <button
-                              className="btn-light"
-                              style={{ padding: "6px 10px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
-                              onClick={() => descargarCotizacionPDF(c)}
-                            >
-                              📄 PDF
-                            </button>
-                            <button
-                              className="btn-light"
-                              style={{ padding: "6px 10px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
-                              onClick={() => enviarCorreo(c)}
-                              disabled={enviandoCorreo === c.id_cotizacion}
-                            >
-                              {enviandoCorreo === c.id_cotizacion ? "⏳..." : "📧 Correo"}
-                            </button>
-                            {c.estado === 'PENDIENTE' && (
-                              <button
-                                className="btn-green"
-                                style={{ padding: "6px 10px", fontSize: "12px", display: "flex", alignItems: "center", gap: "4px" }}
-                                onClick={() => abrirModalIniciar(c)}
-                              >
-                                🔨 Iniciar trabajo
-                              </button>
+                          <ActionMenu>
+                            {(close) => (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => { close(); verDetalle(c.id_cotizacion); }}
+                                  style={{
+                                    width: "100%",
+                                    padding: "9px 14px",
+                                    textAlign: "left",
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "13px",
+                                    fontWeight: "600",
+                                    color: "#1e293b",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    cursor: "pointer"
+                                  }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f1f5f9")}
+                                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                >
+                                  <span style={{ fontSize: "14px" }}>👁️</span> Detalle
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { close(); editarCotizacion(c); }}
+                                  style={{
+                                    width: "100%",
+                                    padding: "9px 14px",
+                                    textAlign: "left",
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "13px",
+                                    fontWeight: "600",
+                                    color: "#2563eb",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    cursor: "pointer"
+                                  }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#eff6ff")}
+                                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                >
+                                  <span style={{ fontSize: "14px" }}>✏️</span> Editar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { close(); descargarCotizacionPDF(c); }}
+                                  style={{
+                                    width: "100%",
+                                    padding: "9px 14px",
+                                    textAlign: "left",
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "13px",
+                                    fontWeight: "600",
+                                    color: "#1e293b",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    cursor: "pointer"
+                                  }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f1f5f9")}
+                                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                >
+                                  <span style={{ fontSize: "14px" }}>📄</span> PDF
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { close(); enviarCorreo(c); }}
+                                  disabled={enviandoCorreo === c.id_cotizacion}
+                                  style={{
+                                    width: "100%",
+                                    padding: "9px 14px",
+                                    textAlign: "left",
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "13px",
+                                    fontWeight: "600",
+                                    color: "#1e293b",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    cursor: "pointer",
+                                    opacity: enviandoCorreo === c.id_cotizacion ? 0.6 : 1
+                                  }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f1f5f9")}
+                                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                >
+                                  <span style={{ fontSize: "14px" }}>📧</span> {enviandoCorreo === c.id_cotizacion ? "Enviando..." : "Correo"}
+                                </button>
+                                {c.estado === 'PENDIENTE' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => { close(); abrirModalIniciar(c); }}
+                                    style={{
+                                      width: "100%",
+                                      padding: "9px 14px",
+                                      textAlign: "left",
+                                      background: "none",
+                                      border: "none",
+                                      fontSize: "13px",
+                                      fontWeight: "600",
+                                      color: "#059669",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      cursor: "pointer"
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#ecfdf5")}
+                                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                  >
+                                    <span style={{ fontSize: "14px" }}>🔨</span> Iniciar trabajo
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => { close(); setCotizacionParaEliminar(c); }}
+                                  style={{
+                                    width: "100%",
+                                    padding: "9px 14px",
+                                    textAlign: "left",
+                                    background: "none",
+                                    border: "none",
+                                    fontSize: "13px",
+                                    fontWeight: "600",
+                                    color: "#dc2626",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    cursor: "pointer"
+                                  }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#fef2f2")}
+                                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                                >
+                                  <span style={{ fontSize: "14px" }}>🗑️</span> Eliminar
+                                </button>
+                              </>
                             )}
-                          </div>
+                          </ActionMenu>
                         </td>
                       </tr>
                     ))
@@ -636,6 +779,70 @@ export default function Cotizaciones() {
                 }}
               >
                 Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal de confirmación para eliminar cotización */}
+      {cotizacionParaEliminar && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 1000
+        }}>
+          <div className="card" style={{
+            width: "380px",
+            padding: "25px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+            textAlign: "center"
+          }}>
+            <div style={{ fontSize: "40px", margin: "0 auto" }}>⚠️</div>
+            
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "bold", color: "#1e293b" }}>
+              ¿Eliminar Cotización?
+            </h3>
+            
+            <p style={{ margin: 0, fontSize: "14px", color: "#475569", lineHeight: "1.5" }}>
+              ¿Está seguro que desea eliminar la <strong>Cotización #{cotizacionParaEliminar.id_cotizacion}</strong> de <strong>{cotizacionParaEliminar.cliente}</strong>?<br />
+              <span style={{ fontSize: "12px", color: "#ef4444" }}>Esta acción no se puede deshacer.</span>
+            </p>
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px", justifyContent: "center" }}>
+              <button 
+                className="btn-light" 
+                onClick={() => setCotizacionParaEliminar(null)}
+                style={{ padding: "8px 16px", cursor: "pointer", border: "1px solid #cbd5e1", borderRadius: "6px" }}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn-delete" 
+                onClick={confirmarEliminacionCotizacion}
+                style={{ 
+                  padding: "8px 20px", 
+                  cursor: "pointer", 
+                  backgroundColor: "#ef4444", 
+                  color: "white", 
+                  fontWeight: "bold", 
+                  borderRadius: "6px",
+                  border: "none"
+                }}
+              >
+                Sí, Eliminar
               </button>
             </div>
           </div>
