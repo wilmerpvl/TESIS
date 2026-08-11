@@ -227,16 +227,15 @@ exports.guardarCotizacion = async (req, res) => {
         });
 
     } catch (error) {
-        await connection.rollback();
-        console.error("Error al guardar la cotización:", error);
         res.status(500).json({ mensaje: 'Error al procesar la cotización. Operación cancelada.' });
     } finally {
         connection.release();
     }
 };
 
-exports.obtenerCotizacionDetalle = (req, res) => {
+exports.enviarCotizacionCorreo = (req, res) => {
     const { id } = req.params;
+    const { pdfBase64 } = req.body || {};
 
     const sqlCotizacion = `
         SELECT
@@ -256,16 +255,19 @@ exports.obtenerCotizacionDetalle = (req, res) => {
         if (rowsCot.length === 0) return res.status(404).json({ mensaje: "Cotización no encontrada" });
 
         const cotizacion = rowsCot[0];
+        const destinatario = cotizacion.cliente_correo;
+
+        if (!destinatario) {
+            return res.status(400).json({ mensaje: "El cliente no tiene un correo electrónico registrado." });
+        }
 
         const sqlPiezas = `
             SELECT
                 d.*,
                 p.nombre AS pieza_nombre,
                 m.nombre AS modulo_nombre,
-                m.id_seccion,
                 t.nombre AS tablero_nombre,
-                t.color AS tablero_color,
-                t.tipo AS tablero_tipo
+                t.color AS tablero_color
             FROM detalle_piezas_cotizacion d
             LEFT JOIN piezas_modulo p ON d.id_pieza = p.id_pieza
             LEFT JOIN modulos m ON d.id_modulo = m.id_modulo
@@ -279,8 +281,7 @@ exports.obtenerCotizacionDetalle = (req, res) => {
             const sqlAccesorios = `
                 SELECT
                     da.*,
-                    a.nombre AS accesorio_nombre,
-                    a.precio_unitario
+                    a.nombre AS accesorio_nombre
                 FROM detalle_accesorios_cotizacion da
                 INNER JOIN accesorios a ON da.id_accesorio = a.id_accesorio
                 WHERE da.id_cotizacion = ?
@@ -289,194 +290,125 @@ exports.obtenerCotizacionDetalle = (req, res) => {
             conexion.query(sqlAccesorios, [id], (err, rowsAccesorios) => {
                 if (err) return res.status(500).json(err);
 
-                res.json({
-                    cotizacion,
-                    piezas: rowsPiezas,
-                    accesorios: rowsAccesorios
-                });
-            });
-        });
-    });
-};
-
-const nodemailer = require('nodemailer');
-
-exports.enviarCotizacionCorreo = (req, res) => {
-    const { id } = req.params;
-    const { emailPersonalizado, mensajePersonalizado, pdfBase64 } = req.body;
-
-    const sqlCotizacion = `
-        SELECT
-            c.*,
-            cli.nombre AS cliente,
-            cli.correo AS cliente_correo,
-            cli.telefono AS cliente_telefono,
-            tm.nombre AS tipo_mueble
-        FROM cotizaciones c
-        INNER JOIN clientes cli ON c.id_cliente = cli.id_cliente
-        INNER JOIN tipos_mueble tm ON c.id_tipo = tm.id_tipo
-        WHERE c.id_cotizacion = ?
-    `;
-
-    conexion.query(sqlCotizacion, [id], (err, rowsCot) => {
-        if (err) return res.status(500).json(err);
-        if (rowsCot.length === 0) return res.status(404).json({ mensaje: "Cotización no encontrada" });
-
-        const cotizacion = rowsCot[0];
-        const destinatario = emailPersonalizado || cotizacion.cliente_correo;
-
-        if (!destinatario) {
-            return res.status(400).json({ mensaje: "El cliente no tiene un correo electrónico registrado." });
-        }
-
-        const sqlPiezas = `
-            SELECT d.*, p.nombre AS pieza_nombre, m.nombre AS modulo_nombre
-            FROM detalle_piezas_cotizacion d
-            LEFT JOIN piezas_modulo p ON d.id_pieza = p.id_pieza
-            LEFT JOIN modulos m ON d.id_modulo = m.id_modulo
-            WHERE d.id_cotizacion = ?
-        `;
-
-        conexion.query(sqlPiezas, [id], (err, rowsPiezas) => {
-            if (err) return res.status(500).json(err);
-
-            const sqlAccesorios = `
-                SELECT da.*, a.nombre AS accesorio_nombre
-                FROM detalle_accesorios_cotizacion da
-                INNER JOIN accesorios a ON da.id_accesorio = a.id_accesorio
-                WHERE da.id_cotizacion = ?
-            `;
-
-            conexion.query(sqlAccesorios, [id], (err, rowsAccesorios) => {
-                if (err) return res.status(500).json(err);
-
-                const enviarConTransporter = (transporter) => {
-                    const htmlContent = `
-                        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                            <div style="background-color: #24833c; padding: 24px; text-align: center; color: white;">
-                                <h1 style="margin: 0; font-size: 24px;">Cotización de Mueble a Medida</h1>
-                                <p style="margin: 4px 0 0 0; opacity: 0.9;">Detalles de la cotización #${cotizacion.id_cotizacion}</p>
-                            </div>
-                            <div style="padding: 24px; color: #334155; line-height: 1.6;">
-                                <p>Estimado(a) <strong>${cotizacion.cliente}</strong>,</p>
-                                <p>${mensajePersonalizado || "Adjuntamos el resumen detallado de la cotización realizada para su proyecto de mueble a medida. A continuación, los detalles principales:"}</p>
-                                
-                                <div style="background-color: #f8fafc; border-radius: 8px; padding: 16px; margin: 20px 0;">
-                                    <table style="width: 100%; border-collapse: collapse;">
-                                        <tr>
-                                            <td style="padding: 6px 0; color: #64748b; font-size: 14px;">Mueble cotizado:</td>
-                                            <td style="padding: 6px 0; font-weight: bold; text-align: right;">${cotizacion.tipo_mueble}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding: 6px 0; color: #64748b; font-size: 14px;">Fecha:</td>
-                                            <td style="padding: 6px 0; font-weight: bold; text-align: right;">${new Date(cotizacion.fecha).toLocaleDateString()}</td>
-                                        </tr>
-                                        <tr style="border-top: 1px solid #cbd5e1;">
-                                            <td style="padding: 10px 0 0 0; color: #1e293b; font-weight: bold; font-size: 16px;">Total Final:</td>
-                                            <td style="padding: 10px 0 0 0; color: #24833c; font-weight: bold; font-size: 20px; text-align: right;">$${Number(cotizacion.total_final).toFixed(2)}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-
-                                <h3 style="color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; font-size: 16px;">Resumen de Materiales y Costos</h3>
-                                <ul style="padding-left: 20px; margin: 0 0 20px 0;">
-                                    <li>Tableros y Cortes: $${Number(cotizacion.total_tableros).toFixed(2)}</li>
-                                    <li>Accesorios y Herrajes: $${Number(cotizacion.total_accesorios).toFixed(2)}</li>
-                                    <li>Mano de obra y Armado: $${Number(cotizacion.mano_obra).toFixed(2)}</li>
-                                    <li>Transporte e Instalación: $${Number(cotizacion.transporte).toFixed(2)}</li>
-                                </ul>
-
-                                <p style="font-size: 13px; color: #64748b; margin-top: 30px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                                    Este es un correo automático del Sistema de Gestión y Cotizaciones de Muebles a Medida.
-                                </p>
-                            </div>
+                const htmlContent = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #334155;">
+                        <div style="background-color: #3b7f4a; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="color: white; margin: 0; font-size: 22px;">Cotización #${cotizacion.id_cotizacion}</h1>
+                            <p style="color: #e2e8f0; margin: 5px 0 0 0; font-size: 14px;">Muebles a Medida - Universidad de Guayaquil</p>
                         </div>
-                    `;
+                        <div style="padding: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
+                            <p>Estimado(a) <strong>${cotizacion.cliente}</strong>,</p>
+                            <p>Adjunto a este correo encontrará el documento PDF detallado con su cotización comercial.</p>
 
-                    const mailOptions = {
-                        from: `"Mueblería UG" <${transporter.options.auth.user}>`,
-                        to: destinatario,
-                        subject: `Cotización #${cotizacion.id_cotizacion} - Muebles a Medida`,
-                        html: htmlContent,
-                        attachments: pdfBase64 ? [
-                            {
-                                filename: `cotizacion-${cotizacion.id_cotizacion}.pdf`,
-                                content: pdfBase64,
-                                encoding: 'base64'
-                            }
-                        ] : []
-                    };
+                            <div style="background-color: white; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1; margin: 20px 0;">
+                                <h3 style="margin-top: 0; color: #1e293b;">Resumen de la Cotización</h3>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 6px 0; color: #64748b;">Mueble:</td>
+                                        <td style="padding: 6px 0; font-weight: bold; text-align: right;">${cotizacion.tipo_mueble}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 0; color: #64748b;">Fecha:</td>
+                                        <td style="padding: 6px 0; font-weight: bold; text-align: right;">${new Date(cotizacion.fecha).toLocaleDateString()}</td>
+                                    </tr>
+                                    <tr style="border-top: 1px solid #cbd5e1;">
+                                        <td style="padding: 10px 0 0 0; color: #1e293b; font-weight: bold; font-size: 16px;">Total Final:</td>
+                                        <td style="padding: 10px 0 0 0; color: #24833c; font-weight: bold; font-size: 20px; text-align: right;">$${Number(cotizacion.total_final).toFixed(2)}</td>
+                                    </tr>
+                                </table>
+                            </div>
 
-                    const sendMailWithTransporter = (t, mOptions, isFallback = false) => {
-                        t.sendMail(mOptions, (errorMail, info) => {
-                            if (errorMail) {
-                                console.error("Error al enviar correo con transporter:", errorMail.message);
-                                if (!isFallback) {
-                                    console.warn("Intentando envío alternativo mediante Ethereal...");
-                                    nodemailer.createTestAccount((errAccount, account) => {
-                                        if (errAccount) {
-                                            return res.status(500).json({ mensaje: "Error al enviar el correo.", detalle: errorMail.message });
+                            <p style="font-size: 13px; color: #64748b; margin-top: 30px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                                Este es un correo automático del Sistema de Gestión y Cotizaciones de Muebles a Medida.
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                const mailOptions = {
+                    from: `"Mueblería UG" <${process.env.SMTP_USER || "noreply@muebles.com"}>`,
+                    to: destinatario,
+                    subject: `Cotización #${cotizacion.id_cotizacion} - Muebles a Medida`,
+                    html: htmlContent,
+                    attachments: pdfBase64 ? [
+                        {
+                            filename: `cotizacion-${cotizacion.id_cotizacion}.pdf`,
+                            content: pdfBase64,
+                            encoding: 'base64'
+                        }
+                    ] : []
+                };
+
+                const sendMailWithTransporter = (t, mOptions, isFallback = false) => {
+                    t.sendMail(mOptions, (errorMail, info) => {
+                        if (errorMail) {
+                            console.error("Error al enviar correo con transporter:", errorMail.message);
+                            if (!isFallback) {
+                                console.warn("Intentando envío alternativo mediante Ethereal...");
+                                nodemailer.createTestAccount((errAccount, account) => {
+                                    if (errAccount) {
+                                        return res.status(500).json({ mensaje: "Error al enviar el correo.", detalle: errorMail.message });
+                                    }
+                                    const fallbackTransporter = nodemailer.createTransport({
+                                        host: account.smtp.host,
+                                        port: account.smtp.port,
+                                        secure: account.smtp.secure,
+                                        auth: {
+                                            user: account.user,
+                                            pass: account.pass
                                         }
-                                        const fallbackTransporter = nodemailer.createTransport({
-                                            host: account.smtp.host,
-                                            port: account.smtp.port,
-                                            secure: account.smtp.secure,
-                                            auth: {
-                                                user: account.user,
-                                                pass: account.pass
-                                            }
-                                        });
-                                        const fallbackOptions = {
-                                            ...mOptions,
-                                            from: `"Mueblería UG" <${account.user}>`
-                                        };
-                                        sendMailWithTransporter(fallbackTransporter, fallbackOptions, true);
                                     });
-                                } else {
-                                    return res.status(500).json({ mensaje: "Error al enviar el correo.", detalle: errorMail.message });
-                                }
-                            } else {
-                                const previewUrl = nodemailer.getTestMessageUrl(info);
-                                res.json({ 
-                                    mensaje: "Correo enviado correctamente a " + destinatario, 
-                                    previewUrl: previewUrl || null 
+                                    const fallbackOptions = {
+                                        ...mOptions,
+                                        from: `"Mueblería UG" <${account.user}>`
+                                    };
+                                    sendMailWithTransporter(fallbackTransporter, fallbackOptions, true);
                                 });
+                            } else {
+                                return res.status(500).json({ mensaje: "Error al enviar el correo.", detalle: errorMail.message });
                             }
-                        });
-                    };
-
-                    if (!process.env.SMTP_HOST && !process.env.SMTP_USER) {
-                        nodemailer.createTestAccount((errAccount, account) => {
-                            if (errAccount) {
-                                return res.status(500).json({ mensaje: "Error de configuración de correo." });
-                            }
-                            const testTransporter = nodemailer.createTransport({
-                                host: account.smtp.host,
-                                port: account.smtp.port,
-                                secure: account.smtp.secure,
-                                auth: {
-                                    user: account.user,
-                                    pass: account.pass
-                                }
+                        } else {
+                            const previewUrl = nodemailer.getTestMessageUrl(info);
+                            res.json({ 
+                                mensaje: "Correo enviado correctamente a " + destinatario, 
+                                previewUrl: previewUrl || null 
                             });
-                            const options = {
-                                ...mailOptions,
-                                from: `"Mueblería UG" <${account.user}>`
-                            };
-                            sendMailWithTransporter(testTransporter, options, true);
-                        });
-                    } else {
-                        const envTransporter = nodemailer.createTransport({
-                            host: process.env.SMTP_HOST,
-                            port: parseInt(process.env.SMTP_PORT || "587"),
-                            secure: process.env.SMTP_SECURE === "true",
+                        }
+                    });
+                };
+
+                if (!process.env.SMTP_HOST && !process.env.SMTP_USER) {
+                    nodemailer.createTestAccount((errAccount, account) => {
+                        if (errAccount) {
+                            return res.status(500).json({ mensaje: "Error de configuración de correo." });
+                        }
+                        const testTransporter = nodemailer.createTransport({
+                            host: account.smtp.host,
+                            port: account.smtp.port,
+                            secure: account.smtp.secure,
                             auth: {
-                                user: process.env.SMTP_USER,
-                                pass: process.env.SMTP_PASS
+                                user: account.user,
+                                pass: account.pass
                             }
                         });
-                        sendMailWithTransporter(envTransporter, mailOptions, false);
-                    }
+                        const options = {
+                            ...mailOptions,
+                            from: `"Mueblería UG" <${account.user}>`
+                        };
+                        sendMailWithTransporter(testTransporter, options, true);
+                    });
+                } else {
+                    const envTransporter = nodemailer.createTransport({
+                        host: process.env.SMTP_HOST,
+                        port: parseInt(process.env.SMTP_PORT || "587"),
+                        secure: process.env.SMTP_SECURE === "true",
+                        auth: {
+                            user: process.env.SMTP_USER,
+                            pass: process.env.SMTP_PASS
+                        }
+                    });
+                    sendMailWithTransporter(envTransporter, mailOptions, false);
+                }
             });
         });
     });
