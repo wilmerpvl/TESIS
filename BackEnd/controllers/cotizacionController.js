@@ -1,5 +1,6 @@
 const conexion = require('../db');
 const registrarAuditoria = require('../routes/auditoria');
+const nodemailer = require('nodemailer');
 
 exports.obtenerTiposMueble = (req, res) => {
     conexion.query(
