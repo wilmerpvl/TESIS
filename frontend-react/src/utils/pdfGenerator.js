@@ -62,6 +62,7 @@ export const generarPDFCotizacion = (cotizacionData, imagenCorte = null, shouldS
     let currentY = 104;
 
     // Tabla de Piezas / Cortes
+    // Tabla de Piezas / Cortes
     if (piezas && piezas.length > 0) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(12);
@@ -73,12 +74,17 @@ export const generarPDFCotizacion = (cotizacionData, imagenCorte = null, shouldS
         autoTable(doc, {
             startY: currentY + 4,
             head: [["Módulo", "Pieza", "Medidas (Ancho x Alto cm)", "Cantidad"]],
-            body: piezas.map(p => [
-                p.modulo_nombre || "Estructura / General",
-                p.pieza_nombre || p.observacion || "Pieza",
-                `${Number(p.ancho).toFixed(1)} x ${Number(p.alto).toFixed(1)}`,
-                p.cantidad
-            ]),
+            body: piezas.map(p => {
+                const anchoVal = Number(p.ancho || 0);
+                const altoVal = Number(p.alto || 0);
+                const cantVal = parseInt(p.cantidad || 1);
+                return [
+                    p.modulo_nombre || "Estructura / General",
+                    p.pieza_nombre || p.observacion || "Pieza",
+                    `${(isNaN(anchoVal) ? 0 : anchoVal).toFixed(1)} x ${(isNaN(altoVal) ? 0 : altoVal).toFixed(1)}`,
+                    cantVal
+                ];
+            }),
             headStyles: { fillColor: colorPrimario, fontStyle: "bold" },
             theme: "striped",
             margin: { left: 14, right: 14 }
@@ -104,12 +110,21 @@ export const generarPDFCotizacion = (cotizacionData, imagenCorte = null, shouldS
         autoTable(doc, {
             startY: currentY + 4,
             head: [["Accesorio", "Precio Unitario", "Cantidad", "Subtotal"]],
-            body: accesorios.map(a => [
-                a.accesorio_nombre || "Accesorio",
-                `$${Number(a.precio_unitario || a.subtotal/a.cantidad || 0).toFixed(2)}`,
-                a.cantidad,
-                `$${Number(a.subtotal || 0).toFixed(2)}`
-            ]),
+            body: accesorios.map(a => {
+                const cantVal = parseInt(a.cantidad || 1);
+                const subtotalVal = Number(a.subtotal || 0);
+                const precioUnitVal = Number(a.precio_unitario || (cantVal > 0 ? subtotalVal / cantVal : 0) || 0);
+                
+                const puSafe = isNaN(precioUnitVal) || !isFinite(precioUnitVal) ? 0 : precioUnitVal;
+                const subSafe = isNaN(subtotalVal) || !isFinite(subtotalVal) ? 0 : subtotalVal;
+                
+                return [
+                    a.accesorio_nombre || "Accesorio",
+                    `$${puSafe.toFixed(2)}`,
+                    cantVal,
+                    `$${subSafe.toFixed(2)}`
+                ];
+            }),
             headStyles: { fillColor: colorPrimario, fontStyle: "bold" },
             theme: "striped",
             margin: { left: 14, right: 14 }
@@ -132,23 +147,28 @@ export const generarPDFCotizacion = (cotizacionData, imagenCorte = null, shouldS
     doc.setFontSize(10);
     doc.setTextColor(74, 85, 104);
     
+    const safeNum = (val) => {
+        const n = Number(val || 0);
+        return isNaN(n) || !isFinite(n) ? 0 : n;
+    };
+
     doc.text("Costo Tableros:", 114, currentY + 8);
-    doc.text(`$${Number(cotizacion.total_tableros || 0).toFixed(2)}`, 192, currentY + 8, { align: "right" });
+    doc.text(`$${safeNum(cotizacion.total_tableros).toFixed(2)}`, 192, currentY + 8, { align: "right" });
 
     doc.text("Costo Accesorios:", 114, currentY + 16);
-    doc.text(`$${Number(cotizacion.total_accesorios || 0).toFixed(2)}`, 192, currentY + 16, { align: "right" });
+    doc.text(`$${safeNum(cotizacion.total_accesorios).toFixed(2)}`, 192, currentY + 16, { align: "right" });
 
     doc.text("Mano de Obra:", 114, currentY + 24);
-    doc.text(`$${Number(cotizacion.mano_obra || 0).toFixed(2)}`, 192, currentY + 24, { align: "right" });
+    doc.text(`$${safeNum(cotizacion.mano_obra).toFixed(2)}`, 192, currentY + 24, { align: "right" });
 
     doc.text("Transporte:", 114, currentY + 32);
-    doc.text(`$${Number(cotizacion.transporte || 0).toFixed(2)}`, 192, currentY + 32, { align: "right" });
+    doc.text(`$${safeNum(cotizacion.transporte).toFixed(2)}`, 192, currentY + 32, { align: "right" });
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.setTextColor(30, 41, 59);
     doc.text("TOTAL COTIZADO:", 114, currentY + 44);
-    doc.text(`$${Number(cotizacion.total_final || 0).toFixed(2)}`, 192, currentY + 44, { align: "right" });
+    doc.text(`$${safeNum(cotizacion.total_final).toFixed(2)}`, 192, currentY + 44, { align: "right" });
 
     currentY += 62;
 
