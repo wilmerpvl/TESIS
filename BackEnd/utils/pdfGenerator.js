@@ -1,5 +1,5 @@
 const { jsPDF } = require("jspdf");
-require("jspdf-autotable");
+const autoTable = require("jspdf-autotable").default || require("jspdf-autotable");
 
 const generarPDFCotizacionServer = (cotizacionData, imagenCorte = null) => {
     const { cotizacion, piezas, accesorios } = cotizacionData;
@@ -69,7 +69,7 @@ const generarPDFCotizacionServer = (cotizacionData, imagenCorte = null) => {
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: currentY + 4,
             head: [["Módulo", "Pieza", "Medidas (Ancho x Alto cm)", "Cantidad"]],
             body: piezas.map(p => {
@@ -87,7 +87,7 @@ const generarPDFCotizacionServer = (cotizacionData, imagenCorte = null) => {
             theme: "striped",
             margin: { left: 14, right: 14 }
         });
-        currentY = doc.lastAutoTable.finalY + 12;
+        currentY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : currentY + 40) + 12;
     }
 
     // Tabla de Accesorios
@@ -104,7 +104,7 @@ const generarPDFCotizacionServer = (cotizacionData, imagenCorte = null) => {
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: currentY + 4,
             head: [["Accesorio", "Precio Unitario", "Cantidad", "Subtotal"]],
             body: accesorios.map(a => {
@@ -126,7 +126,7 @@ const generarPDFCotizacionServer = (cotizacionData, imagenCorte = null) => {
             theme: "striped",
             margin: { left: 14, right: 14 }
         });
-        currentY = doc.lastAutoTable.finalY + 12;
+        currentY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : currentY + 40) + 12;
     }
 
     // Sección de Totales
