@@ -155,17 +155,18 @@ export default function Cotizaciones() {
       const resDetail = await api.get(`/cotizacion-detalle/${c.id_cotizacion}`);
       const data = resDetail.data;
       
-      // 2. Generar diagrama de cortes si existen piezas
+      // 2. Generar diagrama de cortes si existen piezas con dimensiones > 0
       let base64Image = null;
       try {
-        if (data.piezas && data.piezas.length > 0) {
+        const piezasValidas = (data.piezas || []).filter(p => parseFloat(p.ancho) > 0 && parseFloat(p.alto) > 0);
+        if (piezasValidas.length > 0) {
           const canvas = document.createElement("canvas");
           canvas.width = 800;
           canvas.height = 500;
-          const piezasFormateadas = data.piezas.map(p => ({
+          const piezasFormateadas = piezasValidas.map(p => ({
             nombre: p.pieza_nombre || "Pieza",
-            ancho: parseFloat(p.ancho) || 0,
-            alto: parseFloat(p.alto) || 0,
+            ancho: parseFloat(p.ancho),
+            alto: parseFloat(p.alto),
             cantidad: parseInt(p.cantidad) || 1
           }));
           const tableroColor = data.piezas[0]?.tablero_color || "Blanco";
@@ -182,6 +183,8 @@ export default function Cotizaciones() {
       const { generarPDFCotizacion } = await import("../utils/pdfGenerator");
       const doc = generarPDFCotizacion(data, base64Image, false);
       const pdfBase64 = doc.output("base64");
+      
+      console.log(`[CLIENT-EMAIL] Cotización #${c.id_cotizacion} - Base64 PDF size: ${pdfBase64 ? pdfBase64.length : 0}`);
       
       // 4. Enviar correo con el PDF adjunto
       const res = await api.post(`/enviar-cotizacion-correo/${c.id_cotizacion}`, {
